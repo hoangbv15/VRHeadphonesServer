@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="VRHeadphonesServer" basedir="." default="build">
+	
+    <!-- Hook into One-Jar project -->
+    <available property="one-jar.dir" file="../one-jar/build.onejar.xml" value="../one-jar"/>
+    <!-- Will be ignored if available above -->
+	<property name="one-jar.dir" location="one-jar" />
+    <import file="${one-jar.dir}/build.onejar.xml"/>
+	
+	<property name="eclipse.jar-in-jar.dir" value="build-lib/eclipse"/>
+	<property name="temp.dir" value="temp" />	
+    <path id="libraries">
+    	<fileset dir="lib" includes="*.jar"/>
+    </path>
+    
+    <target name="mkdirs">
+        <mkdir dir="${test.results.dir}" />
+        <mkdir dir="${test.reports.dir}"/>
+        <mkdir dir="classes/src"/>
+    	<mkdir dir="build"/>
+    </target>
+
+	<target name="build" depends="clean, mkdirs, compile, build.VRHeadphonesServer" />
+
+	<target name="clean">
+		<delete dir="classes" />
+	</target>
+	
+	<target name="distclean" depends="clean" description="clean distribution">
+	    <delete dir="build"/>
+	</target>
+
+	<target name="compile" depends="mkdirs">
+        <javac destdir="classes/src" includes="**/*.java" debug="true">
+            <src path="src" />
+            <classpath refid="libraries" />
+            <classpath refid="one-jar.libraries"/>
+            <classpath path="${one-jar.ant.jar}"/>
+        </javac>
+	</target>
+
+    <!-- Build the One-Jar -->
+	<target name="build.VRHeadphonesServer">
+		<mkdir dir="build"/>
+		<copy todir="classes">
+		  <fileset dir="src">
+		    <exclude name="**/*.java"/>
+		  </fileset>
+		</copy>
+		<one-jar destfile="build/VRHeadphonesServer.jar">
+            <manifest>
+                <attribute name="Main-Class" value="com.vrheadphones.toyprojects.buivuhoang.vrheadphonesserver.VRHeadphonesServer"/>
+                <attribute name="One-Jar-Main-Class" value="com.vrheadphones.toyprojects.buivuhoang.vrheadphonesserver.VRHeadphonesServer"/>
+            </manifest>
+            <main>
+                <fileset dir="classes/src"/>
+            </main>
+            <lib>
+                <fileset dir="lib" includes="*.jar" />
+            </lib>
+			<binlib>
+			    <fileset dir="binlib/native/windows" includes="*.*"/>
+				<fileset dir="binlib/native/linux" includes="*.*"/>
+			    <fileset dir="binlib/native/macosx" includes="*.*"/>
+				<fileset dir="binlib/native/solaris" includes="*.*"/>
+			</binlib>
+			<fileset dir="classes" includes="*.wav"/>
+		</one-jar>
+		<delete dir="${temp.dir}" />
+	</target>
+
+    <property name="formatter" value="xml" />
+    <target name="run.VRHeadphonesServer" depends="build" description="Run a One-Jar VRHeadphonesServer">
+        <java fork="true" jar="build/VRHeadphonesServer.jar"/>
+    </target>
+	
+</project>

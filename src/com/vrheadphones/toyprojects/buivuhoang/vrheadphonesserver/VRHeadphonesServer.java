@@ -10,6 +10,8 @@ import java.util.jar.JarFile;
 
 import javax.swing.Timer;
 
+import org.lwjgl.openal.AL;
+
 public class VRHeadphonesServer {
 	private float[] originalCubeCentre = {0, 4, 0};
 	private float[] currentCubeCentre = {0, 4, 0};
@@ -61,13 +63,16 @@ public class VRHeadphonesServer {
 				appMainView = new AppMainView();
 				appMainView.createAndShowGUI();
 				appMainView.setIpAddress(sHost);
-				appMainView.updateRotationalData(1, 2, 3);
 			}
 		});
 		
 	}
 	
 	public void updateRotationAngle(float thetaX, float thetaY, float thetaZ) {
+		if (!SoundPlayer.isPlaying() || appMainView.isFileChanged()) {
+			SoundPlayer.play(appMainView.getWaveFile());
+		}
+		
 		float x = originalCubeCentre[0];
         float y = originalCubeCentre[1];
         currentCubeCentre[0] = (float) (x * Math.cos(thetaX) - y * Math.sin(thetaX));
@@ -84,10 +89,12 @@ public class VRHeadphonesServer {
         currentCubeCentre[2] = (float) (- x * Math.sin(thetaY) + z * Math.cos(thetaY));
         
         appMainView.updateRotationalData(x, y, z);
+        SoundPlayer.setSourcePosition(x, y, z);
 //        appMainView.updateRotationalData(thetaX, thetaY, thetaZ);
 	}
 	
 	public void start() {
+//		SoundPlayer.init();
 		this.timer = new Timer(500, new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				world.onEnter();

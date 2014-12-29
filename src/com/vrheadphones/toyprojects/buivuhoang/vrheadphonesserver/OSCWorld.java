@@ -53,7 +53,6 @@ public class OSCWorld extends World {
 			this.receiver.addListener("/rotate", listener);
 			//
 			this.receiver.startListening();
-			
 			// discoverable stuff
 			this.discoverable = new DiscoverableThread(OSCPort.defaultSCOSCPort()+1);
 			this.discoverable.start();
