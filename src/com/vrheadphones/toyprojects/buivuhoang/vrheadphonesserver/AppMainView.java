@@ -18,6 +18,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SpringLayout;
+import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.vrheadphones.toyprojects.buivuhoang.utilities.SpringUtilities;
@@ -47,7 +48,11 @@ public class AppMainView {
 	private JPanel instructionsPanel = new JPanel();
 
 	private void addComponentsToPane(Container pane) {
-
+		
+		instructionsPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+		rotationalDataPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+		fileNameLabel.setBorder(new EmptyBorder(5, 5, 5, 5));
+		
 		if (!(pane.getLayout() instanceof BorderLayout)) {
 			pane.add(new JLabel("Container doesn't use BorderLayout!"));
 			return;
