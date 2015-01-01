@@ -103,11 +103,11 @@ public class AppMainView {
 		menuBar.add(menu);
 
 		// Open wave file
-		menuItem = new JMenuItem("Open Wave File", KeyEvent.VK_O);
+		menuItem = new JMenuItem("Open Mono Wave File", KeyEvent.VK_O);
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1,
 				ActionEvent.ALT_MASK));
 		menuItem.getAccessibleContext().setAccessibleDescription(
-				"Opens a wave file to use as a 3D sound source");
+				"Opens a mono wave file to use as a 3D sound source");
 		menuItem.addActionListener(new OpenWaveFileAction());
 		menu.add(menuItem);
 		

@@ -10,8 +10,6 @@ import java.util.jar.JarFile;
 
 import javax.swing.Timer;
 
-import org.lwjgl.openal.AL;
-
 public class VRHeadphonesServer {
 	private float[] originalCubeCentre = {0, 4, 0};
 	private float[] currentCubeCentre = {0, 4, 0};
