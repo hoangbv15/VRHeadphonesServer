@@ -192,4 +192,8 @@ public class CubeRenderer implements Runnable {
             System.exit(0);
         }
 	}
+
+	public static boolean isCloseRequested() {
+		return Display.isCloseRequested();
+	}
 }
