@@ -3,8 +3,7 @@ package com.vrheadphones.toyprojects.buivuhoang.vrheadphonesserver;
 import org.lwjgl.input.Mouse;
 
 public class VRHeadphonesUsingMouse {
-	private float[] originalCubeCentre = { 0, 4, 0 };
-	private float[] currentCubeCentre = { 0, 4, 0 };
+	private Position3D cubeCentre = new Position3D(0, 4, 0);
 
 	private CubeRenderer cubeRenderer;
 	private float mouseSensitivity = 0.02f;
@@ -28,7 +27,7 @@ public class VRHeadphonesUsingMouse {
 			Thread t = new Thread(cubeRenderer);
 			t.start();
 			Thread.sleep(1000);
-			Mouse.setGrabbed(true);
+//			Mouse.setGrabbed(true);
 
 			while (!CubeRenderer.isCloseRequested()) {
 				pollInput();
@@ -47,31 +46,13 @@ public class VRHeadphonesUsingMouse {
 
 		cubeRenderer.setRotationAngle(dX, dY, 0);
 
-		if (!SoundPlayer.isPlaying()) {
-			SoundPlayer.play(null);
+		if (!SoundPlayer.isPlaying() || appMainView.isFileChanged()) {
+			SoundPlayer.play(appMainView.getWaveFile());
 		}
 
-		float x = originalCubeCentre[0];
-		float y = originalCubeCentre[1];
-		currentCubeCentre[0] = (float) (x * Math.cos(dX) - y
-				* Math.sin(dX));
-		currentCubeCentre[1] = (float) (x * Math.sin(dX) + y
-				* Math.cos(dX));
-
-		y = currentCubeCentre[1];
-		float z = originalCubeCentre[2];
-		currentCubeCentre[1] = y;
-		currentCubeCentre[2] = z;
-
-		x = currentCubeCentre[0];
-		z = currentCubeCentre[2];
-		currentCubeCentre[0] = (float) (x * Math.cos(dY) - z
-				* Math.sin(dY));
-		currentCubeCentre[2] = (float) (-x * Math.sin(dY) + z
-				* Math.cos(dY));
-
-		SoundPlayer.setSourcePosition(x, y, z);
-		appMainView.updateRotationalData(x, y, z);
+		cubeCentre.rotate(dX, dY, 0);
+		SoundPlayer.setSourcePosition(cubeCentre.x, cubeCentre.y, cubeCentre.z);
+		appMainView.updateRotationalData(cubeCentre.x, cubeCentre.y, cubeCentre.z);
 	}
 
 	public static void main(String[] args) {

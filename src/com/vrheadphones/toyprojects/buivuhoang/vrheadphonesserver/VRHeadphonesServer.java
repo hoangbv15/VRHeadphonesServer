@@ -11,8 +11,7 @@ import java.util.jar.JarFile;
 import javax.swing.Timer;
 
 public class VRHeadphonesServer {
-	private float[] originalCubeCentre = {0, 4, 0};
-	private float[] currentCubeCentre = {0, 4, 0};
+	private Position3D cubeCentre = new Position3D(0, 4, 0);
 	
 	public static JarFile jar;
 	public static String basePath = "";
@@ -72,27 +71,14 @@ public class VRHeadphonesServer {
 			SoundPlayer.play(appMainView.getWaveFile());
 		}
 		
-		float x = originalCubeCentre[0];
-        float y = originalCubeCentre[1];
-        currentCubeCentre[0] = (float) (x * Math.cos(thetaX) - y * Math.sin(thetaX));
-        currentCubeCentre[1] = (float) (x * Math.sin(thetaX) + y * Math.cos(thetaX));
-
-        y = currentCubeCentre[1];
-        float z = originalCubeCentre[2];
-        currentCubeCentre[1] = (float) (y * Math.cos(thetaZ) - z * Math.sin(thetaZ));
-        currentCubeCentre[2] = (float) (y * Math.sin(thetaZ) + z * Math.cos(thetaZ));
-
-        x = currentCubeCentre[0];
-        z = currentCubeCentre[2];
-        currentCubeCentre[0] = (float) (  x * Math.cos(thetaY) - z * Math.sin(thetaY));
-        currentCubeCentre[2] = (float) (- x * Math.sin(thetaY) + z * Math.cos(thetaY));
+		cubeCentre.rotate(thetaX, thetaY, thetaZ);
         
 //        appMainView.updateRotationalData(x, y, z);
         appMainView.updateRotationalData(thetaX, thetaY, thetaZ);
         
         cubeRenderer.setRotationAngle(thetaX, thetaY, thetaZ);
         
-        SoundPlayer.setSourcePosition(x, y, z);
+        SoundPlayer.setSourcePosition(cubeCentre.x, cubeCentre.y, cubeCentre.z);
         
 	}
 	
