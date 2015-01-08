@@ -216,8 +216,8 @@ public class PositionChooser {
 		
 		private int rawX;
 		private int rawY;
-		private int calculatedX;
-		private int calculatedY;
+		private float calculatedX;
+		private float calculatedY;
 		
 		private boolean positionSet = false;
 		
@@ -237,8 +237,8 @@ public class PositionChooser {
 	        	    	rawX = e.getX();
 	        	    	rawY = e.getY();
 	        	  	
-	        	    	calculatedX = rawX - image.getWidth()/2;
-	        	    	calculatedY = -(rawY - image.getHeight()/2);
+	        	    	calculatedX = ((float)rawX - image.getWidth()/2)/40;
+	        	    	calculatedY = -((float)rawY - image.getHeight()/2)/40;
 	        	        
 	        	        repaint();
 	        	    }
@@ -284,11 +284,11 @@ public class PositionChooser {
 			return size;
 		}
 	
-		public int getPosX() {
+		public float getPosX() {
 			return calculatedX;
 		}
 		
-		public int getPosY() {
+		public float getPosY() {
 			return calculatedY;
 		}
 	}
