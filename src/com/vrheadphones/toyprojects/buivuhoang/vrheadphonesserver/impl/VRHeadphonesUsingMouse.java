@@ -5,8 +5,8 @@ import org.lwjgl.input.Mouse;
 public class VRHeadphonesUsingMouse {
 	private Position3D cubeCentre = new Position3D(0, 4, 0);
 
-	private Renderer3D cubeRenderer;
-	private float mouseSensitivity = 0.02f;
+	private Renderer3D renderer;
+	private float mouseSensitivity = 0.01f;
 	private float dX = 0.0f;
 	private float dY = 0.0f;
 	private AppMainView appMainView;
@@ -23,11 +23,11 @@ public class VRHeadphonesUsingMouse {
 		});
 
 		try {
-			cubeRenderer = new Renderer3D(this);
-			Thread t = new Thread(cubeRenderer);
+			renderer = new Renderer3D(this);
+			Thread t = new Thread(renderer);
 			t.start();
 			Thread.sleep(1000);
-//			Mouse.setGrabbed(true);
+			Mouse.setGrabbed(true);
 
 			while (!Renderer3D.isCloseRequested()) {
 				pollInput();
@@ -44,7 +44,7 @@ public class VRHeadphonesUsingMouse {
 		dX -= dXNew;
 		dY += dYNew;
 
-		cubeRenderer.setRotationAngle(dX, dY, 0);
+		renderer.setRotationAngle(dX, dY, 0);
 
 		if (!SoundPlayer3D.isPlaying() || appMainView.isFileChanged()) {
 			SoundPlayer3D.play(appMainView.getWaveFile());

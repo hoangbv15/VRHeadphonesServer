@@ -22,7 +22,7 @@ public class VRHeadphonesServer {
 	private Timer timer;
 	private static AppMainView appMainView;
 	private OSCWorld world;
-	private Renderer3D cubeRenderer;
+	private Renderer3D renderer;
 	public VRHeadphonesServer() {
 
 		// get local IP
@@ -76,7 +76,7 @@ public class VRHeadphonesServer {
 //        appMainView.updateRotationalData(x, y, z);
         appMainView.updateRotationalData(thetaX, thetaY, thetaZ);
         
-        cubeRenderer.setRotationAngle(thetaX, thetaY, thetaZ);
+        renderer.setRotationAngle(thetaX, thetaY, thetaZ);
         
         SoundPlayer3D.setSourcePosition(cubeCentre.x, cubeCentre.y, cubeCentre.z);
         
@@ -86,8 +86,8 @@ public class VRHeadphonesServer {
 //		SoundPlayer3D.init();
 		
 		try {
-			cubeRenderer = new Renderer3D(this);
-			Thread t = new Thread(cubeRenderer);
+			renderer = new Renderer3D(this);
+			Thread t = new Thread(renderer);
 	        t.start();
 		} catch (Exception e) {
 			e.printStackTrace();

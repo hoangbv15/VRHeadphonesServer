@@ -45,7 +45,7 @@ import static org.lwjgl.opengl.GL15.*;
  */
 public class OBJLoader {
 
-    public static int createDisplayList(Model m) {
+    public static int createDisplayList(Model m, float x, float y, float z) {
         int displayList = glGenLists(1);
         glNewList(displayList, GL_COMPILE);
         {
@@ -58,19 +58,19 @@ public class OBJLoader {
                     glNormal3f(n1.x, n1.y, n1.z);
                 }
                 Vector3f v1 = m.getVertices().get(face.getVertexIndices()[0] - 1);
-                glVertex3f(v1.x, v1.y, v1.z);
+                glVertex3f(v1.x - x, v1.y - y, v1.z - z);
                 if (face.hasNormals()) {
                     Vector3f n2 = m.getNormals().get(face.getNormalIndices()[1] - 1);
                     glNormal3f(n2.x, n2.y, n2.z);
                 }
                 Vector3f v2 = m.getVertices().get(face.getVertexIndices()[1] - 1);
-                glVertex3f(v2.x, v2.y, v2.z);
+                glVertex3f(v2.x - x, v2.y - y, v2.z - z);
                 if (face.hasNormals()) {
                     Vector3f n3 = m.getNormals().get(face.getNormalIndices()[2] - 1);
                     glNormal3f(n3.x, n3.y, n3.z);
                 }
                 Vector3f v3 = m.getVertices().get(face.getVertexIndices()[2] - 1);
-                glVertex3f(v3.x, v3.y, v3.z);
+                glVertex3f(v3.x - x, v3.y - y, v3.z - z);
             }
             glEnd();
         }

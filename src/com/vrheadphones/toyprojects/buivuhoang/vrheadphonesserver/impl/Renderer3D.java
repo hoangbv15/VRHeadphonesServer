@@ -8,37 +8,24 @@ package com.vrheadphones.toyprojects.buivuhoang.vrheadphonesserver.impl;
  *      Visit My Site At nehe.gamedev.net
  */
 
-import static org.lwjgl.opengl.GL11.GL_COMPILE;
-import static org.lwjgl.opengl.GL11.GL_FRONT_AND_BACK;
-import static org.lwjgl.opengl.GL11.GL_LINE;
-import static org.lwjgl.opengl.GL11.GL_TRIANGLES;
-import static org.lwjgl.opengl.GL11.glBegin;
 import static org.lwjgl.opengl.GL11.glCallList;
-import static org.lwjgl.opengl.GL11.glEnd;
-import static org.lwjgl.opengl.GL11.glEndList;
-import static org.lwjgl.opengl.GL11.glGenLists;
-import static org.lwjgl.opengl.GL11.glNewList;
-import static org.lwjgl.opengl.GL11.glNormal3f;
-import static org.lwjgl.opengl.GL11.glPolygonMode;
-import static org.lwjgl.opengl.GL11.glVertex3f;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL20;
 import org.lwjgl.util.glu.GLU;
-import org.lwjgl.util.vector.Vector3f;
 
 import utility.BufferTools;
 import utility.Camera;
 import utility.EulerCamera;
-import utility.Model;
 import utility.OBJLoader;
-
-import com.vrheadphones.toyprojects.buivuhoang.vrheadphonesserver.Shape3D;
+import utility.ShaderLoader;
 
 /**
  * @author Mark Bernard
@@ -59,28 +46,42 @@ import com.vrheadphones.toyprojects.buivuhoang.vrheadphonesserver.Shape3D;
 public class Renderer3D implements Runnable {
 	
 	private static Camera camera;
+//	private static float[] camPosition = {-1.38f, 1.36f, 10f};
+	private static float[] camPosition = {0, 0, 0};
 	private static int bunnyDisplayList;
+	private static int shaderProgram;
 	
     private static final String MODEL_LOCATION = "res/models/bunny.obj";
-	
+    private static final String VERTEX_SHADER_LOCATION = "res/shaders/vertex_phong_lighting.vs";
+    private static final String FRAGMENT_SHADER_LOCATION = "res/shaders/vertex_phong_lighting.fs";
+    
     private static float[] lightPosition = {-2.19f, 1.36f, 11.45f, 1f};
     
 	private Object monitor;
     private boolean done = false;
     private static boolean fullscreen = false;
-    private final static String windowTitle = "Cube";
+    private final static String WINDOW_TITLE = "Sound Position in 3D";
 
     private DisplayMode displayMode;
     
     private float thetaX;
     private float thetaY;
     private float thetaZ;
-    
-    private Shape3D cube = new Cube3D();
-    
+        
     public Renderer3D(Object monitor) {
     	this.monitor = monitor;
     }
+    
+	private void exitCheck() {
+		if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) { // Exit if Escape is
+														// pressed
+			done = true;
+		}
+		if (Display.isCloseRequested()) { // Exit if window is closed
+			done = true;
+		}
+	}
+
        
     public boolean render() {
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);          // Clear The Screen And The Depth Buffer
@@ -89,8 +90,13 @@ public class Renderer3D implements Runnable {
         
         camera.setRotation((float)Math.toDegrees(thetaY), (float)Math.toDegrees(thetaX), (float)Math.toDegrees(thetaZ));
         camera.applyTranslations();
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        
+        GL20.glUseProgram(shaderProgram);
+        
+//        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glCallList(bunnyDisplayList);
+        
+        GL20.glUseProgram(0);
         
         return true;
     }
@@ -107,66 +113,48 @@ public class Renderer3D implements Runnable {
             }
         }
         Display.setDisplayMode(displayMode);
-        Display.setTitle(windowTitle);
+        Display.setTitle(WINDOW_TITLE);
         Display.create();
     }
     
     private static void setUpDisplayLists() {
-        bunnyDisplayList = glGenLists(1);
-        glNewList(bunnyDisplayList, GL_COMPILE);
-        {
-            Model m = null;
-            try {
-                m = OBJLoader.loadModel(new File(MODEL_LOCATION));
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-                Display.destroy();
-                System.exit(1);
-            } catch (IOException e) {
-                e.printStackTrace();
-                Display.destroy();
-                System.exit(1);
-            }
-            
-            GL11.glColor3f(0.4f, 0.27f, 0.17f);
-            glBegin(GL_TRIANGLES);
-            for (Model.Face face : m.getFaces()) {
-                Vector3f n1 = m.getNormals().get(face.getNormalIndices()[0] - 1);
-                glNormal3f(n1.x, n1.y, n1.z);
-                Vector3f v1 = m.getVertices().get(face.getVertexIndices()[0] - 1);
-                glVertex3f(v1.x, v1.y, v1.z);
-                Vector3f n2 = m.getNormals().get(face.getNormalIndices()[1] - 1);
-                glNormal3f(n2.x, n2.y, n2.z);
-                Vector3f v2 = m.getVertices().get(face.getVertexIndices()[1] - 1);
-                glVertex3f(v2.x, v2.y, v2.z);
-                Vector3f n3 = m.getNormals().get(face.getNormalIndices()[2] - 1);
-                glNormal3f(n3.x, n3.y, n3.z);
-                Vector3f v3 = m.getVertices().get(face.getVertexIndices()[2] - 1);
-                glVertex3f(v3.x, v3.y, v3.z);
-            }
-            glEnd();
+    	try {
+    		bunnyDisplayList = OBJLoader.createDisplayList(OBJLoader.loadModel(new File(MODEL_LOCATION)), 0, 0, 20);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            cleanup();
+            System.exit(1);
+        } catch (IOException e) {
+            e.printStackTrace();
+            cleanup();
+            System.exit(1);
         }
-        glEndList();
     }
     
     private static void setUpCamera() {
         camera = new EulerCamera.Builder().setAspectRatio((float) Display.getWidth() / Display.getHeight())
-                .setRotation(-1.12f, 0.16f, 0f).setPosition(-1.38f, 1.36f, 20f).setFieldOfView(60).build();
+                .setRotation(-1.12f, 0.16f, 0f).setPosition(camPosition[0], camPosition[1], camPosition[2])
+                .setFieldOfView(60).build();
         camera.applyOptimalStates();
         camera.applyPerspectiveMatrix();
     }
     
     private static void setUpLighting() {
-    	GL11.glShadeModel(GL11.GL_SMOOTH);
-    	GL11.glEnable(GL11.GL_DEPTH_TEST);
-    	GL11.glEnable(GL11.GL_LIGHTING);
-    	GL11.glEnable(GL11.GL_LIGHT0);
-    	GL11.glLightModel(GL11.GL_LIGHT_MODEL_AMBIENT, BufferTools.asFlippedFloatBuffer(new float[]{0.05f, 0.05f, 0.05f, 1f}));
-    	GL11.glLight(GL11.GL_LIGHT0, GL11.GL_POSITION, BufferTools.asFlippedFloatBuffer(new float[]{0, 0, 0, 1}));
-    	GL11.glEnable(GL11.GL_CULL_FACE);
-    	GL11.glCullFace(GL11.GL_BACK);
-    	GL11.glEnable(GL11.GL_COLOR_MATERIAL);
-    	GL11.glColorMaterial(GL11.GL_FRONT, GL11.GL_DIFFUSE);
+        GL11.glShadeModel(GL11.GL_SMOOTH);
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
+        GL11.glEnable(GL11.GL_LIGHTING);
+        GL11.glEnable(GL11.GL_LIGHT0);
+        GL11.glLightModel(GL11.GL_LIGHT_MODEL_AMBIENT, BufferTools.asFlippedFloatBuffer(new float[]{0.05f, 0.05f, 0.05f, 1f}));
+        GL11.glLight(GL11.GL_LIGHT0, GL11.GL_POSITION, BufferTools.asFlippedFloatBuffer(lightPosition));
+        GL11.glEnable(GL11.GL_CULL_FACE);
+        GL11.glCullFace(GL11.GL_BACK);
+        GL11.glEnable(GL11.GL_COLOR_MATERIAL);
+        GL11.glColorMaterial(GL11.GL_FRONT, GL11.GL_DIFFUSE);
+        GL11.glColor3f(0.4f, 0.27f, 0.17f);
+    }
+    
+    private static void setUpShaders() {
+        shaderProgram = ShaderLoader.loadShaderPair(VERTEX_SHADER_LOCATION, FRAGMENT_SHADER_LOCATION);
     }
     
     public void init() throws Exception {
@@ -174,6 +162,7 @@ public class Renderer3D implements Runnable {
         initGL();
         setUpDisplayLists();
         setUpCamera();
+        setUpShaders();
         setUpLighting();
     }
 
@@ -200,7 +189,9 @@ public class Renderer3D implements Runnable {
         GL11.glHint(GL11.GL_PERSPECTIVE_CORRECTION_HINT, GL11.GL_NICEST);
     }
     
-    public void cleanup() {
+    public static void cleanup() {
+    	GL20.glDeleteProgram(shaderProgram);
+        GL11.glDeleteLists(bunnyDisplayList, 1);
         Display.destroy();
     }
     
@@ -219,6 +210,7 @@ public class Renderer3D implements Runnable {
             init();
             synchronized(monitor) {
 	            while (!done) {
+	            	exitCheck();
 	            	monitor.wait();
 	                render();
 	                Display.update();
@@ -228,8 +220,10 @@ public class Renderer3D implements Runnable {
         }
         catch (Exception e) {
             e.printStackTrace();
-            System.exit(0);
         }
+		finally {
+			System.exit(0);
+		}
 	}
 
 	public static boolean isCloseRequested() {
