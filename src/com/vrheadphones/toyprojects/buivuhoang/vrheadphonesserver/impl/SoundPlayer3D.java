@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.util.List;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
@@ -14,19 +15,17 @@ import org.lwjgl.util.WaveData;
 public class SoundPlayer3D {
 	private static final String DEFAULT_FILE = "Footsteps.wav";
 
-	/** Buffers hold sound data. */
-	private static IntBuffer buffer = BufferUtils.createIntBuffer(1);
+	/** Maximum data buffers we will need. */
+	public static int NUM_BUFFERS = 1;
 
-	/** Sources are points emitting sound. */
-	private static IntBuffer source = BufferUtils.createIntBuffer(1);
+	/** Maximum emissions we will need. */
+	public static int NUM_SOURCES = 1;
+
+	/** Buffers hold sound data. */
+	private static IntBuffer buffer, source;
 
 	/** Position of the source sound. */
-	private static FloatBuffer sourcePos = (FloatBuffer) BufferUtils.createFloatBuffer(3)
-			.put(new float[] { 0.0f, 0.0f, 0.0f }).rewind();
-
-	/** Velocity of the source sound. */
-	private static FloatBuffer sourceVel = (FloatBuffer) BufferUtils.createFloatBuffer(3)
-			.put(new float[] { 0.0f, 0.0f, 0.0f }).rewind();
+	private static FloatBuffer sourceVel;
 
 	/** Position of the listener. */
 	private static FloatBuffer listenerPos = (FloatBuffer) BufferUtils.createFloatBuffer(3)
@@ -40,44 +39,62 @@ public class SoundPlayer3D {
 	 * Orientation of the listener. (first 3 elements are "at", second 3 are
 	 * "up")
 	 */
-	private static FloatBuffer listenerOri = (FloatBuffer) BufferUtils.createFloatBuffer(6)
-			.put(new float[] { 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f }).rewind();
-	
+	private static FloatBuffer listenerOri = (FloatBuffer) BufferUtils.createFloatBuffer(6).put(
+			new float[] { 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f }).rewind();
+
 	public static void init() {
 		// Initialize OpenAL and clear the error bit.
-	    try{
-	      AL.create();
-	    } catch (LWJGLException le) {
-	      le.printStackTrace();
-	      return;
-	    }
-	    AL10.alGetError();
-	    setListenerValues();
+		try {
+			initBuffers();
+			AL.create();
+			setListenerValues();
+		} catch (LWJGLException le) {
+			le.printStackTrace();
+			return;
+		}
+		AL10.alGetError();
 	}
-	
+
+	private static void initBuffers() {
+		/** Buffers hold sound data. */
+		buffer = BufferUtils.createIntBuffer(NUM_BUFFERS);
+
+		/** Sources are points emitting sound. */
+		source = BufferUtils.createIntBuffer(NUM_BUFFERS);
+
+		/** Velocity of the source sound. */
+		sourceVel = (FloatBuffer) BufferUtils.createFloatBuffer(3 * NUM_BUFFERS).rewind();
+	}
+
 	public static boolean isPlaying() {
 		return AL.isCreated();
 	}
-	
-	public static void setSourcePosition(float x, float y, float z) {
-		FloatBuffer sourcePos = (FloatBuffer)BufferUtils.createFloatBuffer(3).put(new float[] { x, y, z }).rewind();
-    	AL10.alSource (source.get(0), AL10.AL_POSITION, sourcePos);
+
+	public static void setSourcePosition(int index, float x, float y, float z) {
+		FloatBuffer sourcePos = (FloatBuffer) BufferUtils.createFloatBuffer(3)
+				.put(new float[] { x, y, z }).rewind();
+		AL10.alSource(source.get(index), AL10.AL_POSITION, sourcePos);
 	}
 
-	public static void play(File file) {
-	    // Load the wav data.
-	    if(loadALData(file) == AL10.AL_FALSE) {
-	      System.out.println("Error loading data.");
-	      return;
-	    }
-	    
-    	AL10.alSourcePlay(source.get(0)); 
+	public static void play(List<Sound3D> soundList) {
+		stop();
+		NUM_SOURCES = soundList.size();
+		NUM_BUFFERS = NUM_SOURCES;
+		init();
+		// Load the wav data.
+		if (loadALData(soundList) == AL10.AL_FALSE) {
+			System.out.println("Error loading data.");
+			return;
+		}
+		for (int i = 0; i < soundList.size(); i++) {
+			AL10.alSourcePlay(source.get(i));
+		}
 	}
-	
+
 	public static void stop() {
-//		AL10.alSourceStop(source.get(0));
-//		killALData();
-	    AL.destroy();
+		// AL10.alSourceStop(source.get(0));
+		// killALData();
+		AL.destroy();
 	}
 
 	/**
@@ -87,9 +104,7 @@ public class SoundPlayer3D {
 	 * utility and send the data into OpenAL as a buffer. A source is then also
 	 * created to play that buffer.
 	 */
-	private static int loadALData(File file) {
-		stop();
-		init();
+	private static int loadALData(List<Sound3D> soundList) {
 		// Load wav data into a buffer.
 		AL10.alGenBuffers(buffer);
 
@@ -97,32 +112,36 @@ public class SoundPlayer3D {
 			return AL10.AL_FALSE;
 
 		// Loads the wave file from your file system
-		WaveData waveFile;
-		java.io.FileInputStream fin = null;
-		try {
-			if (file == null) 
-				waveFile = WaveData.create(DEFAULT_FILE);
-			else {
-				fin = new java.io.FileInputStream(file);
-				waveFile = WaveData.create(new BufferedInputStream(fin));
-			}
-		} catch (java.io.FileNotFoundException ex) {
-			ex.printStackTrace();
-			return AL10.AL_FALSE;
-		}
-		
-		if (fin != null) {
+		for (int i = 0; i < soundList.size(); i++) {
+			Sound3D sound = soundList.get(i);
+			File file = sound.waveFile;
+			WaveData waveFile;
+			java.io.FileInputStream fin = null;
 			try {
-				fin.close();
-			} catch (java.io.IOException ex) {
+				if (file == null)
+					waveFile = WaveData.create(DEFAULT_FILE);
+				else {
+					fin = new java.io.FileInputStream(file);
+					waveFile = WaveData.create(new BufferedInputStream(fin));
+				}
+			} catch (java.io.FileNotFoundException ex) {
+				ex.printStackTrace();
+				return AL10.AL_FALSE;
 			}
-		}
 
-		// Loads the wave file from this class's package in your classpath
-		// WaveData waveFile = WaveData.create("Footsteps.wav");
-		AL10.alBufferData(buffer.get(0), waveFile.format, waveFile.data,
-				waveFile.samplerate);
-		waveFile.dispose();
+			if (fin != null) {
+				try {
+					fin.close();
+				} catch (java.io.IOException ex) {
+				}
+			}
+
+			// Loads the wave file from this class's package in your classpath
+			// WaveData waveFile = WaveData.create("Footsteps.wav");
+			AL10.alBufferData(buffer.get(i), waveFile.format, waveFile.data,
+					waveFile.samplerate);
+			waveFile.dispose();
+		}
 
 		// Bind the buffer with the source.
 		AL10.alGenSources(source);
@@ -130,12 +149,15 @@ public class SoundPlayer3D {
 		if (AL10.alGetError() != AL10.AL_NO_ERROR)
 			return AL10.AL_FALSE;
 
-		AL10.alSourcei(source.get(0), AL10.AL_BUFFER, buffer.get(0));
-		AL10.alSourcef(source.get(0), AL10.AL_PITCH, 1.0f);
-		AL10.alSourcef(source.get(0), AL10.AL_GAIN, 1.0f);
-		AL10.alSource(source.get(0), AL10.AL_POSITION, sourcePos);
-		AL10.alSource(source.get(0), AL10.AL_VELOCITY, sourceVel);
-		AL10.alSourcei(source.get(0), AL10.AL_LOOPING,  AL10.AL_TRUE  );
+		for (int i = 0; i < soundList.size(); i++) {
+			Sound3D sound = soundList.get(i);
+			AL10.alSourcei(source.get(i), AL10.AL_BUFFER, buffer.get(i));
+			AL10.alSourcef(source.get(i), AL10.AL_PITCH, 1.0f);
+			AL10.alSourcef(source.get(i), AL10.AL_GAIN, 1.0f);
+			setSourcePosition(i, sound.x, sound.y, sound.z);
+			AL10.alSource(source.get(i), AL10.AL_VELOCITY, sourceVel);
+			AL10.alSourcei(source.get(i), AL10.AL_LOOPING, AL10.AL_TRUE);
+		}
 		
 		// Do another error check and return.
 		if (AL10.alGetError() == AL10.AL_NO_ERROR)

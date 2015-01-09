@@ -1,6 +1,10 @@
 package com.vrheadphones.toyprojects.buivuhoang.vrheadphonesserver.impl;
 
-public class Position3D {
+import java.io.File;
+
+public class Sound3D {
+	public File waveFile;
+	
 	// Current x, y, z
 	public float x;
 	public float y;
@@ -11,7 +15,7 @@ public class Position3D {
 	private float oY;
 	private float oZ;
 	
-	public Position3D(float x, float y, float z) {
+	public Sound3D(float x, float y, float z) {
 		this.x = x;
 		this.y = y;
 		this.z = z;

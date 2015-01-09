@@ -12,6 +12,7 @@ import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
@@ -28,38 +29,26 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class PositionChooser {
-	
-	private static final String TARGET_IMAGE = "res/imgs/target_large.png";
-	private File waveFile;
 	private boolean isFileChanged = true;
 	
 	public static String FRAME_TITLE = "VR Headphones Server";
 	public static boolean RIGHT_TO_LEFT = false;
 
-	private JLabel xLabel = new JLabel("x: ");
-	private JLabel yLabel = new JLabel("y: ");
-	private JLabel zLabel = new JLabel("z: ");
-
-	private JLabel xValueLabel = new JLabel("0.0");
-	private JLabel yValueLabel = new JLabel("0.0");
-	private JLabel zValueLabel = new JLabel("0.0");
-
-	private JLabel fileNameLabel = new JLabel("Chosen wave file: default");
-	
 	private JButton okButton = new JButton("OK");
-	private JButton addButton = new JButton("Add");
 	private JButton deleteButton = new JButton("Delete");
 	
-	private ImagePanel positionFieldPanel = new ImagePanel();
+	private SoundPositionPanel positionFieldPanel = new SoundPositionPanel();
 
 	private JFrame appFrame;
 	private JPanel buttonPanel = new JPanel();
+	private JPanel instructionsPanel = new JPanel();
 
 	private void addComponentsToPane(Container pane) {
 		okButton.addActionListener(new OKButtonAction());
-		
+		deleteButton.addActionListener(new DeleteButtonAction());
 		buttonPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		positionFieldPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+		instructionsPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		
 		if (!(pane.getLayout() instanceof BorderLayout)) {
 			pane.add(new JLabel("Container doesn't use BorderLayout!"));
@@ -69,12 +58,14 @@ public class PositionChooser {
 		if (RIGHT_TO_LEFT) {
 			pane.setComponentOrientation(java.awt.ComponentOrientation.RIGHT_TO_LEFT);
 		}
-
+		
+		instructionsPanel.setLayout(new BoxLayout(instructionsPanel,
+				BoxLayout.PAGE_AXIS));
+		pane.add(instructionsPanel, BorderLayout.NORTH);
 		pane.add(positionFieldPanel, BorderLayout.CENTER);
 		
 		buttonPanel.setLayout(new BoxLayout(buttonPanel,
 				BoxLayout.LINE_AXIS));
-		buttonPanel.add(addButton);
 		buttonPanel.add(deleteButton);
 		buttonPanel.add(okButton);
 		
@@ -93,21 +84,19 @@ public class PositionChooser {
 		// Build the first menu.
 		menu = new JMenu("File");
 		menu.setMnemonic(KeyEvent.VK_A);
-		menu.getAccessibleContext().setAccessibleDescription(
-				"The only menu in this program that has menu items");
 		menuBar.add(menu);
 
-		// Open wave file
-		menuItem = new JMenuItem("Open Mono Wave File", KeyEvent.VK_O);
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1,
-				ActionEvent.ALT_MASK));
-		menuItem.getAccessibleContext().setAccessibleDescription(
-				"Opens a mono wave file to use as a 3D sound source");
-		menuItem.addActionListener(new OpenWaveFileAction());
-		menu.add(menuItem);
-		
-		// Close
-		menu.addSeparator();
+//		// Open wave file
+//		menuItem = new JMenuItem("Open Mono Wave File", KeyEvent.VK_O);
+//		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1,
+//				ActionEvent.ALT_MASK));
+//		menuItem.getAccessibleContext().setAccessibleDescription(
+//				"Opens a mono wave file to use as a 3D sound source");
+//		menuItem.addActionListener(new OpenWaveFileAction());
+//		menu.add(menuItem);
+//		
+//		// Close
+//		menu.addSeparator();
 
 		menuItem = new JMenuItem("Exit", KeyEvent.VK_E);
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2,
@@ -119,25 +108,6 @@ public class PositionChooser {
 
 		frame.setJMenuBar(menuBar);
 	}
-	
-	// Opens a wave file to use as a 3D sound source
-	private class OpenWaveFileAction implements ActionListener
-    {
-        public void actionPerformed(ActionEvent e)
-        {
-        	// Loads the wave file from your file system
-    		JFileChooser chooser = new JFileChooser();
-    		FileNameExtensionFilter filter = new FileNameExtensionFilter(
-    				"WAVE sound files", "wav");
-    		chooser.setFileFilter(filter);
-    		int returnVal = chooser.showOpenDialog(null);
-    		if (returnVal == JFileChooser.APPROVE_OPTION) {
-    			isFileChanged = true;
-    			waveFile = chooser.getSelectedFile();
-    			fileNameLabel.setText("Chosen wave file: " + waveFile.getName());
-    		}
-        }
-    }
 	
 	// Exit app
     private static class ExitAppAction implements ActionListener
@@ -152,7 +122,17 @@ public class PositionChooser {
     {
         public void actionPerformed(ActionEvent e)
         {
-        	System.out.println(positionFieldPanel.getPosX() + " " + positionFieldPanel.getPosY());
+        	isFileChanged = true;
+        	for (Sound3D pos: positionFieldPanel.getSoundList())
+        		System.out.println(pos.x + " " + pos.y);
+        }
+    }
+    
+    private class DeleteButtonAction implements ActionListener
+    {
+        public void actionPerformed(ActionEvent e)
+        {
+        	positionFieldPanel.deleteSelected();
         }
     }
 
@@ -176,14 +156,10 @@ public class PositionChooser {
 		appFrame.setVisible(true);
 	}
 
-	public void updateRotationalData(float x, float y, float z) {
-		xValueLabel.setText(x + "");
-		yValueLabel.setText(y + "");
-		zValueLabel.setText(z + "");
-	}
+	public void updateRotationalData(float x, float y, float z) {}
 
 	public void setIpAddress(String ipAddress) {
-		buttonPanel.removeAll();
+		instructionsPanel.removeAll();
 
 		String[] instructions = {
 				"The VRHeadphonesServer application is now running.", "",
@@ -193,14 +169,11 @@ public class PositionChooser {
 
 		for (String s : instructions) {
 			JLabel label = new JLabel(s);
-			buttonPanel.add(label);
+			instructionsPanel.add(label);
 		}
+		appFrame.pack();
 	}
 
-	public File getWaveFile() {
-		return waveFile;
-	}
-	
 	public boolean isFileChanged() {
 		if (isFileChanged) {
 			isFileChanged = false;
@@ -209,88 +182,8 @@ public class PositionChooser {
 		return false;
 	}
 	
-	private class ImagePanel extends JPanel {
-		private BufferedImage image;
-		
-		private BufferedImage circle;
-		
-		private int rawX;
-		private int rawY;
-		private float calculatedX;
-		private float calculatedY;
-		
-		private boolean positionSet = false;
-		
-	    public ImagePanel() {
-	       try {                
-	          image = ImageIO.read(new File(TARGET_IMAGE));
-	          circle = ImageIO.read(new File("res/imgs/Circle.png"));
-	          addMouseListener(new MouseListener() {
-	        	    @Override
-	        	    public void mouseClicked(MouseEvent e) {
-	        	    	
-	        	    	if (isWithinSetPosition(e.getX(), e.getY())) {
-	        	    		return;
-	        	    	}
-	        	    	
-	        	    	positionSet = true;
-	        	    	rawX = e.getX();
-	        	    	rawY = e.getY();
-	        	  	
-	        	    	calculatedX = ((float)rawX - image.getWidth()/2)/40;
-	        	    	calculatedY = -((float)rawY - image.getHeight()/2)/40;
-	        	        
-	        	        repaint();
-	        	    }
-
-					@Override
-					public void mousePressed(MouseEvent e) {
-					}
-
-					@Override
-					public void mouseReleased(MouseEvent e) {
-					}
-
-					@Override
-					public void mouseEntered(MouseEvent e) {}
-
-					@Override
-					public void mouseExited(MouseEvent e) {}
-	        	});
-	       } catch (IOException ex) {
-	            // handle exception...
-	       }
-	    }
-
-	    protected boolean isWithinSetPosition(int x, int y) {
-	    	if (Math.abs(x - rawX) < circle.getWidth()/2 && 
-	    			Math.abs(y - rawY) < circle.getHeight()/2)
-	    		return true;
-			return false;
-		}
-
-		@Override
-	    protected void paintComponent(Graphics g) {
-	        super.paintComponent(g);
-	        g.drawImage(image, 0, 0, null); // see javadoc for more info on the parameters       
-	        
-	        if (positionSet) 
-	        	g.drawImage(circle, rawX - circle.getWidth()/2, rawY - circle.getHeight()/2, null);
-	    }
-
-		@Override
-		public Dimension getPreferredSize() {
-			Dimension size = new Dimension(image.getWidth(), image.getHeight());
-			return size;
-		}
-	
-		public float getPosX() {
-			return calculatedX;
-		}
-		
-		public float getPosY() {
-			return calculatedY;
-		}
+	public List<Sound3D> getSoundList() {
+		return positionFieldPanel.getSoundList();
 	}
 	
 	public static void main(String[] args) {
@@ -298,6 +191,7 @@ public class PositionChooser {
 			public void run() {
 				PositionChooser appMainView = new PositionChooser();
 				appMainView.createAndShowGUI();
+				appMainView.setIpAddress("127.0.0.1");
 			}
 		});
 	}

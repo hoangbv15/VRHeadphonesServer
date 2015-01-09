@@ -1,22 +1,22 @@
 package com.vrheadphones.toyprojects.buivuhoang.vrheadphonesserver.impl;
 
+import java.util.List;
+
 import org.lwjgl.input.Mouse;
 
 public class VRHeadphonesUsingMouse {
-	private Position3D cubeCentre = new Position3D(0, 4, 0);
-
 	private Renderer3D renderer;
 	private float mouseSensitivity = 0.01f;
 	private float dX = 0.0f;
 	private float dY = 0.0f;
-	private AppMainView appMainView;
-
+	private PositionChooser appMainView;
+	
 	public void start() {
 		// Schedule a job for the event dispatch thread:
 		// creating and showing this application's GUI.
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				appMainView = new AppMainView();
+				appMainView = new PositionChooser();
 				appMainView.createAndShowGUI();
 				appMainView.setIpAddress("None");
 			}
@@ -45,14 +45,18 @@ public class VRHeadphonesUsingMouse {
 		dY += dYNew;
 
 		renderer.setRotationAngle(dX, dY, 0);
-
+		
+		List<Sound3D> soundList = appMainView.getSoundList();
+		
 		if (!SoundPlayer3D.isPlaying() || appMainView.isFileChanged()) {
-			SoundPlayer3D.play(appMainView.getWaveFile());
+			SoundPlayer3D.play(soundList);
 		}
-
-		cubeCentre.rotate(dX, dY, 0);
-		SoundPlayer3D.setSourcePosition(cubeCentre.x, cubeCentre.y, cubeCentre.z);
-		appMainView.updateRotationalData(cubeCentre.x, cubeCentre.y, cubeCentre.z);
+		
+		for (int i = 0; i < soundList.size(); i++) {
+			Sound3D sound = soundList.get(i);
+			sound.rotate(dX, dY, 0);
+			SoundPlayer3D.setSourcePosition(i, sound.x, sound.y, sound.z);
+		}
 	}
 
 	public static void main(String[] args) {

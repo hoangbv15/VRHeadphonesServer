@@ -11,7 +11,7 @@ import java.util.jar.JarFile;
 import javax.swing.Timer;
 
 public class VRHeadphonesServer {
-	private Position3D cubeCentre = new Position3D(0, 4, 0);
+	private Sound3D cubeCentre = new Sound3D(0, 4, 0);
 	
 	public static JarFile jar;
 	public static String basePath = "";
@@ -68,7 +68,7 @@ public class VRHeadphonesServer {
 	
 	public void updateRotationAngle(float thetaX, float thetaY, float thetaZ) {
 		if (!SoundPlayer3D.isPlaying() || appMainView.isFileChanged()) {
-			SoundPlayer3D.play(appMainView.getWaveFile());
+//			SoundPlayer3D.play(appMainView.getWaveFile());
 		}
 		
 		cubeCentre.rotate(thetaX, thetaY, thetaZ);
@@ -78,7 +78,7 @@ public class VRHeadphonesServer {
         
         renderer.setRotationAngle(thetaX, thetaY, thetaZ);
         
-        SoundPlayer3D.setSourcePosition(cubeCentre.x, cubeCentre.y, cubeCentre.z);
+//        SoundPlayer3D.setSourcePosition(cubeCentre.x, cubeCentre.y, cubeCentre.z);
         
 	}
 	
