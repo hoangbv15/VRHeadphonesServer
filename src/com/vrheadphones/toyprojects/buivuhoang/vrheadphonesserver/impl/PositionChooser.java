@@ -130,7 +130,7 @@ public class PositionChooser {
         	isFileChanged = true;
         	soundList = positionFieldPanel.getSoundList();
 //        	for (Sound3D pos: positionFieldPanel.getSoundList())
-//        		System.out.println(pos.x + " " + pos.y);
+//        		System.out.println(pos.waveFile.getName() + ": " + pos.x + " " + pos.y);
         }
     }
     

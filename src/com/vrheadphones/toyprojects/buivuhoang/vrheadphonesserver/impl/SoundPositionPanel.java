@@ -51,20 +51,108 @@ public class SoundPositionPanel extends JPanel {
 			addMouseMotionListener(controlListener);
 			addKeyListener(controlListener);
 			setFocusable(true);
+			addSampleSounds();
 			
-			// Add a default sound
-			float x = image.getWidth()/2;// + 100;
-			float y = -4*40 + image.getHeight()/2;
-			Sound3D defaultSound = new Sound3D(x, y, 0);
-			rawList.add(defaultSound);
-//			x = image.getWidth()/2 - 100;
-//			y = -4*40 + image.getHeight()/2;
-//			Sound3D defaultSound2 = new Sound3D(x, y, 0);
-//			defaultSound2.waveFile = new File("E:/Software Projects/VRHeadphonesServer/src/Opera.wav");
-//			rawList.add(defaultSound2);
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}
+	}
+	
+	public void addSampleSounds() {
+		// Add a default sound
+		
+//		float x = image.getWidth() / 2 + 100;
+//		float y = -4 * 40 + image.getHeight() / 2;
+		
+		float x = 249;
+		float y = 107;
+		Sound3D defaultSound = new Sound3D(x, y, 0);
+		defaultSound.waveFile = new File("Guitar 2 (7).wav");
+		rawList.add(defaultSound);
+		
+		x = 149;
+		y = 105;
+		Sound3D defaultSound2 = new Sound3D(x, y, 0);
+		defaultSound2.waveFile = new File("Guitar 1 (6).wav");
+		rawList.add(defaultSound2);
+		
+		x = 60;
+		y = 34;
+		Sound3D defaultSound3 = new Sound3D(x, y, 0);
+		defaultSound3.waveFile = new File("Background Vocals Left (13).wav");
+		rawList.add(defaultSound3);
+		
+		x = 27;
+		y = 68;
+		Sound3D defaultSound4 = new Sound3D(x, y, 0);
+		defaultSound4.waveFile = new File("Background Vocals Right (14).wav");
+		rawList.add(defaultSound4);
+		
+		x = 198;
+		y = 113;
+		Sound3D defaultSound5 = new Sound3D(x, y, 0);
+		defaultSound5.waveFile = new File("Bass (5).wav");
+		rawList.add(defaultSound5);
+		
+		x = 197;
+		y = 69;
+		Sound3D defaultSound6 = new Sound3D(x, y, 0);
+		defaultSound6.waveFile = new File("Guitar Solo (8).wav");
+		rawList.add(defaultSound6);
+		
+		x = 248;
+		y = 16;
+		Sound3D defaultSound7 = new Sound3D(x, y, 0);
+		defaultSound7.waveFile = new File("Kick (1).wav");
+		rawList.add(defaultSound7);
+		
+		x = 198;
+		y = 158.0198f;
+		Sound3D defaultSound8 = new Sound3D(x, y, 0);
+		defaultSound8.waveFile = new File("Lead Vocals (15).wav");
+		rawList.add(defaultSound8);
+		
+		x = 80;
+		y = 150;
+		Sound3D defaultSound9 = new Sound3D(x, y, 0);
+		defaultSound9.waveFile = new File("Organ Left (9).wav");
+		rawList.add(defaultSound9);
+		
+		x = 316;
+		y = 145;
+		Sound3D defaultSound10 = new Sound3D(x, y, 0);
+		defaultSound10.waveFile = new File("Organ Right (10).wav");
+		rawList.add(defaultSound10);
+		
+		x = 133;
+		y = 64;
+		Sound3D defaultSound11 = new Sound3D(x, y, 0);
+		defaultSound11.waveFile = new File("Overheads Left (3).wav");
+		rawList.add(defaultSound11);
+		
+		x = 264;
+		y = 66;
+		Sound3D defaultSound12 = new Sound3D(x, y, 0);
+		defaultSound12.waveFile = new File("Overheads Right (4).wav");
+		rawList.add(defaultSound12);
+		
+		x = 88;
+		y = 100;
+		Sound3D defaultSoun13 = new Sound3D(x, y, 0);
+		defaultSoun13.waveFile = new File("Saxaphone Left (11).wav");
+		rawList.add(defaultSoun13);
+		
+		x = 326;
+		y = 90;
+		Sound3D defaultSound14 = new Sound3D(x, y, 0);
+		defaultSound14.waveFile = new File("Saxaphone Right (12).wav");
+		rawList.add(defaultSound14);
+		
+		x = 149;
+		y = 14;
+		Sound3D defaultSound15 = new Sound3D(x, y, 0);
+		defaultSound15.waveFile = new File("Snare (2).wav");
+		rawList.add(defaultSound15);
 	}
 
 	// Opens a wave file to use as a 3D sound source
@@ -209,6 +297,9 @@ public class SoundPositionPanel extends JPanel {
 		List<Sound3D> calculatedList = new ArrayList<Sound3D>();
 		
 		for (Sound3D rawPost: rawList) {
+			
+//			System.out.println(rawPost.waveFile.getName() + ": " + rawPost.x + " " + rawPost.y);
+			
 			float x = ((float)rawPost.x - image.getWidth()/2)/40;
 			float y = -((float)rawPost.y - image.getHeight()/2)/40;
 			Sound3D calculatedPos = new Sound3D(x, y, 0);
