@@ -50,7 +50,6 @@ public class OBJLoader {
         glNewList(displayList, GL_COMPILE);
         {
             glMaterialf(GL_FRONT, GL_SHININESS, 120);
-            glColor3f(0.4f, 0.27f, 0.17f);
             glBegin(GL_TRIANGLES);
             for (Model.Face face : m.getFaces()) {
                 if (face.hasNormals()) {
@@ -113,7 +112,7 @@ public class OBJLoader {
     }
 
     private static Vector3f parseVertex(String line) {
-        String[] xyz = line.split(" ");
+        String[] xyz = line.split(" +");
         float x = Float.valueOf(xyz[1]);
         float y = Float.valueOf(xyz[2]);
         float z = Float.valueOf(xyz[3]);
@@ -143,8 +142,8 @@ public class OBJLoader {
         }
     }
 
-    public static Model loadModel(File f) throws IOException {
-        BufferedReader reader = new BufferedReader(new FileReader(f));
+    public static Model loadModel(InputStream f) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(f));
         Model m = new Model();
         String line;
         while ((line = reader.readLine()) != null) {

@@ -15,6 +15,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,8 +44,8 @@ public class SoundPositionPanel extends JPanel {
 	
 	public SoundPositionPanel() {
 		try {
-			image = ImageIO.read(new File(TARGET_IMAGE));
-			circle = ImageIO.read(new File(CIRCLE_IMAGE));
+			image = ImageIO.read(getClass().getClassLoader().getResourceAsStream(TARGET_IMAGE));
+			circle = ImageIO.read(getClass().getClassLoader().getResourceAsStream(CIRCLE_IMAGE));
 			ControlListener controlListener = new ControlListener();
 			addMouseListener(controlListener);
 			addMouseMotionListener(controlListener);
@@ -52,15 +53,15 @@ public class SoundPositionPanel extends JPanel {
 			setFocusable(true);
 			
 			// Add a default sound
-			float x = image.getWidth()/2 + 100;
+			float x = image.getWidth()/2;// + 100;
 			float y = -4*40 + image.getHeight()/2;
 			Sound3D defaultSound = new Sound3D(x, y, 0);
 			rawList.add(defaultSound);
-			x = image.getWidth()/2 - 100;
-			y = -4*40 + image.getHeight()/2;
-			Sound3D defaultSound2 = new Sound3D(x, y, 0);
-			defaultSound2.waveFile = new File("C:/Users/Hoang/Documents/A Woman's Heart.wav");
-			rawList.add(defaultSound2);
+//			x = image.getWidth()/2 - 100;
+//			y = -4*40 + image.getHeight()/2;
+//			Sound3D defaultSound2 = new Sound3D(x, y, 0);
+//			defaultSound2.waveFile = new File("E:/Software Projects/VRHeadphonesServer/src/Opera.wav");
+//			rawList.add(defaultSound2);
 		} catch (IOException ex) {
 			ex.printStackTrace();
 		}

@@ -13,6 +13,8 @@ import static org.lwjgl.opengl.GL11.glCallList;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
@@ -44,60 +46,69 @@ import utility.ShaderLoader;
  * 2004-09-22: Updated to version 0.92alpha of LWJGL.
  */
 public class Renderer3D implements Runnable {
+	private final static boolean VSYNC = true;
+    private final static int FRAME_RATE = 60;
+	
+	private static List<Sound3D> soundList;
+	private static boolean refresh = false;
 	
 	private static Camera camera;
 //	private static float[] camPosition = {-1.38f, 1.36f, 10f};
-	private static float[] camPosition = {0, 0, 0};
-	private static int bunnyDisplayList;
-	private static int shaderProgram;
+	private static float[] camPosition = {0.5f, 0.5f, 0};
+	private static List<Integer> displayList;
+//	private static int shaderProgram;
 	
-    private static final String MODEL_LOCATION = "res/models/bunny.obj";
-    private static final String VERTEX_SHADER_LOCATION = "res/shaders/vertex_phong_lighting.vs";
-    private static final String FRAGMENT_SHADER_LOCATION = "res/shaders/vertex_phong_lighting.fs";
+    private static final String MODEL_LOCATION = "res/models/cube.obj";
+//    private static final String VERTEX_SHADER_LOCATION = "res/shaders/vertex_phong_lighting.vs";
+//    private static final String FRAGMENT_SHADER_LOCATION = "res/shaders/vertex_phong_lighting.fs";
     
     private static float[] lightPosition = {-2.19f, 1.36f, 11.45f, 1f};
     
 	private Object monitor;
-    private boolean done = false;
+    private static boolean done = false;
     private static boolean fullscreen = false;
     private final static String WINDOW_TITLE = "Sound Position in 3D";
-
+    
     private DisplayMode displayMode;
     
     private float thetaX;
     private float thetaY;
     private float thetaZ;
-        
+    
     public Renderer3D(Object monitor) {
     	this.monitor = monitor;
+    
     }
     
-	private void exitCheck() {
-		if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) { // Exit if Escape is
-														// pressed
+	private void inputPoll() {
+		if (Keyboard.isKeyDown(Keyboard.KEY_ESCAPE)) {
 			done = true;
 		}
 		if (Display.isCloseRequested()) { // Exit if window is closed
 			done = true;
 		}
 	}
-
        
-    public boolean render() {
-        GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);          // Clear The Screen And The Depth Buffer
+    public boolean render() throws Exception {
+    	if (needsRefresh()) {
+    		setUpDisplayLists();
+    	}
+    	
+    	GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);          // Clear The Screen And The Depth Buffer
 
         GL11.glLoadIdentity();                          // Reset The Current Modelview Matrix
         
         camera.setRotation((float)Math.toDegrees(thetaY), (float)Math.toDegrees(thetaX), (float)Math.toDegrees(thetaZ));
         camera.applyTranslations();
+//        GL20.glUseProgram(shaderProgram);
         
-        GL20.glUseProgram(shaderProgram);
+//        GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
+        GL11.glColor3f(0.1f, 0.2f, 0.5f);
+        for (Integer display: displayList)
+        	glCallList(display);
         
-//        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glCallList(bunnyDisplayList);
-        
-        GL20.glUseProgram(0);
-        
+//        GL20.glUseProgram(0);
+        Display.sync(FRAME_RATE);
         return true;
     }
     
@@ -105,8 +116,8 @@ public class Renderer3D implements Runnable {
         Display.setFullscreen(fullscreen);
         DisplayMode d[] = Display.getAvailableDisplayModes();
         for (int i = 0; i < d.length; i++) {
-            if (d[i].getWidth() == 640
-                && d[i].getHeight() == 480
+            if (d[i].getWidth() == 1280
+                && d[i].getHeight() == 720
                 && d[i].getBitsPerPixel() == 32) {
                 displayMode = d[i];
                 break;
@@ -114,12 +125,35 @@ public class Renderer3D implements Runnable {
         }
         Display.setDisplayMode(displayMode);
         Display.setTitle(WINDOW_TITLE);
+        Display.setVSyncEnabled(VSYNC);
         Display.create();
     }
     
+    public static void setSoundList(List<Sound3D> newSoundList) {
+    	soundList = newSoundList;
+    	refresh = true;
+    }
+    
+    private static boolean needsRefresh() {
+    	if (refresh) {
+    		refresh = false;
+    		return true;
+    	}
+    	return false;
+    }
+        
     private static void setUpDisplayLists() {
     	try {
-    		bunnyDisplayList = OBJLoader.createDisplayList(OBJLoader.loadModel(new File(MODEL_LOCATION)), 0, 0, 20);
+    		displayList = new ArrayList<Integer>(soundList.size());
+    		for (int i = 0; i < soundList.size(); i++) {
+    			Sound3D sound = soundList.get(i);
+    			float x = - sound.x;
+    			float y = sound.y;
+    			float z = sound.z;
+    			int display = OBJLoader.createDisplayList(OBJLoader.loadModel(
+    					sound.getClass().getClassLoader().getResourceAsStream(MODEL_LOCATION)), x, z, y);
+    			displayList.add(display);
+    		}
         } catch (FileNotFoundException e) {
             e.printStackTrace();
             cleanup();
@@ -153,23 +187,23 @@ public class Renderer3D implements Runnable {
         GL11.glColor3f(0.4f, 0.27f, 0.17f);
     }
     
-    private static void setUpShaders() {
-        shaderProgram = ShaderLoader.loadShaderPair(VERTEX_SHADER_LOCATION, FRAGMENT_SHADER_LOCATION);
-    }
+//    private static void setUpShaders() {
+//        shaderProgram = ShaderLoader.loadShaderPair(VERTEX_SHADER_LOCATION, FRAGMENT_SHADER_LOCATION);
+//    }
     
     public void init() throws Exception {
         createWindow();
         initGL();
-        setUpDisplayLists();
+//        setUpDisplayLists();
         setUpCamera();
-        setUpShaders();
+//        setUpShaders();
         setUpLighting();
     }
 
     private void initGL() {
         GL11.glEnable(GL11.GL_TEXTURE_2D); // Enable Texture Mapping
         GL11.glShadeModel(GL11.GL_SMOOTH); // Enable Smooth Shading
-        GL11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Black Background
+        GL11.glClearColor(1.0f, 1.0f, 1.0f, 0.0f); // Black Background
         GL11.glClearDepth(1.0); // Depth Buffer Setup
         GL11.glEnable(GL11.GL_DEPTH_TEST); // Enables Depth Testing
         GL11.glDepthFunc(GL11.GL_LEQUAL); // The Type Of Depth Testing To Do
@@ -190,8 +224,10 @@ public class Renderer3D implements Runnable {
     }
     
     public static void cleanup() {
-    	GL20.glDeleteProgram(shaderProgram);
-        GL11.glDeleteLists(bunnyDisplayList, 1);
+//    	GL20.glDeleteProgram(shaderProgram);
+    	if (displayList != null)
+	    	for (Integer display: displayList)
+	    		GL11.glDeleteLists(display, 1);
         Display.destroy();
     }
     
@@ -207,10 +243,10 @@ public class Renderer3D implements Runnable {
 	@Override
 	public void run() {
 		try {
-            init();
+			init();
             synchronized(monitor) {
 	            while (!done) {
-	            	exitCheck();
+	            	inputPoll();
 	            	monitor.wait();
 	                render();
 	                Display.update();
@@ -227,6 +263,6 @@ public class Renderer3D implements Runnable {
 	}
 
 	public static boolean isCloseRequested() {
-		return Display.isCloseRequested();
+		return done;
 	}
 }

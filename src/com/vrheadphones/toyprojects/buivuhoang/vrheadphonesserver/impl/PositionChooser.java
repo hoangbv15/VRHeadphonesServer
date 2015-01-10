@@ -30,6 +30,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class PositionChooser {
 	private boolean isFileChanged = true;
+	private List<Sound3D> soundList;
 	
 	public static String FRAME_TITLE = "VR Headphones Server";
 	public static boolean RIGHT_TO_LEFT = false;
@@ -42,6 +43,10 @@ public class PositionChooser {
 	private JFrame appFrame;
 	private JPanel buttonPanel = new JPanel();
 	private JPanel instructionsPanel = new JPanel();
+	
+	public PositionChooser() {
+		soundList = positionFieldPanel.getSoundList();
+	}
 
 	private void addComponentsToPane(Container pane) {
 		okButton.addActionListener(new OKButtonAction());
@@ -123,8 +128,9 @@ public class PositionChooser {
         public void actionPerformed(ActionEvent e)
         {
         	isFileChanged = true;
-        	for (Sound3D pos: positionFieldPanel.getSoundList())
-        		System.out.println(pos.x + " " + pos.y);
+        	soundList = positionFieldPanel.getSoundList();
+//        	for (Sound3D pos: positionFieldPanel.getSoundList())
+//        		System.out.println(pos.x + " " + pos.y);
         }
     }
     
@@ -183,7 +189,7 @@ public class PositionChooser {
 	}
 	
 	public List<Sound3D> getSoundList() {
-		return positionFieldPanel.getSoundList();
+		return soundList;
 	}
 	
 	public static void main(String[] args) {

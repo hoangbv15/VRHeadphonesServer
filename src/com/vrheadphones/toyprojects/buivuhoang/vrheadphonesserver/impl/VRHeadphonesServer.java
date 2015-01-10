@@ -6,13 +6,12 @@ import java.io.File;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.List;
 import java.util.jar.JarFile;
 
 import javax.swing.Timer;
 
 public class VRHeadphonesServer {
-	private Sound3D cubeCentre = new Sound3D(0, 4, 0);
-	
 	public static JarFile jar;
 	public static String basePath = "";
 	public static InetAddress localAddr;
@@ -20,7 +19,7 @@ public class VRHeadphonesServer {
 	private String sHost = "";
 	
 	private Timer timer;
-	private static AppMainView appMainView;
+	private PositionChooser appMainView;
 	private OSCWorld world;
 	private Renderer3D renderer;
 	public VRHeadphonesServer() {
@@ -56,43 +55,42 @@ public class VRHeadphonesServer {
 		
 		// Schedule a job for the event dispatch thread:
 		// creating and showing this application's GUI.
+		appMainView = new PositionChooser();
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				appMainView = new AppMainView();
 				appMainView.createAndShowGUI();
 				appMainView.setIpAddress(sHost);
 			}
 		});
 		
-	}
-	
-	public void updateRotationAngle(float thetaX, float thetaY, float thetaZ) {
-		if (!SoundPlayer3D.isPlaying() || appMainView.isFileChanged()) {
-//			SoundPlayer3D.play(appMainView.getWaveFile());
-		}
-		
-		cubeCentre.rotate(thetaX, thetaY, thetaZ);
-        
-//        appMainView.updateRotationalData(x, y, z);
-        appMainView.updateRotationalData(thetaX, thetaY, thetaZ);
-        
-        renderer.setRotationAngle(thetaX, thetaY, thetaZ);
-        
-//        SoundPlayer3D.setSourcePosition(cubeCentre.x, cubeCentre.y, cubeCentre.z);
-        
-	}
-	
-	public void start() {
-//		SoundPlayer3D.init();
-		
 		try {
 			renderer = new Renderer3D(this);
+			Renderer3D.setSoundList(appMainView.getSoundList());
 			Thread t = new Thread(renderer);
 	        t.start();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void updateRotationAngle(float thetaX, float thetaY, float thetaZ) {
+		renderer.setRotationAngle(thetaX, thetaY, thetaZ);
+				
+		List<Sound3D> soundList = appMainView.getSoundList();
 		
+		if (!SoundPlayer3D.isPlaying() || appMainView.isFileChanged()) {
+			SoundPlayer3D.play(soundList);
+			Renderer3D.setSoundList(soundList);
+		}
+		
+		for (int i = 0; i < soundList.size(); i++) {
+			Sound3D sound = soundList.get(i);
+			sound.rotate(thetaX, thetaY, thetaZ);
+			SoundPlayer3D.setSourcePosition(i, sound.x, sound.y, sound.z);
+		}        
+	}
+	
+	public void start() {
 		this.timer = new Timer(500, new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				world.onEnter();

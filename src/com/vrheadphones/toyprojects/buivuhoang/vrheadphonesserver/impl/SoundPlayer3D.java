@@ -13,7 +13,7 @@ import org.lwjgl.openal.AL10;
 import org.lwjgl.util.WaveData;
 
 public class SoundPlayer3D {
-	private static final String DEFAULT_FILE = "Footsteps.wav";
+	private static final String DEFAULT_FILE = "Opera.wav";
 
 	/** Maximum data buffers we will need. */
 	public static int NUM_BUFFERS = 1;
