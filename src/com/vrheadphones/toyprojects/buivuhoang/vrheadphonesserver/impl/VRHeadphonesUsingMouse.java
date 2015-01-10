@@ -7,7 +7,7 @@ import org.lwjgl.input.Mouse;
 
 public class VRHeadphonesUsingMouse {
 	private Renderer3D renderer;
-	private static final float MOUSE_SENSITIVITY = 0.01f;
+	private static final float MOUSE_SENSITIVITY = 0.005f;
 	private static final float KEYBOARD_SENSITIVITY = 0.05f;
 	private float dX = 0.0f;
 	private float dY = 0.0f;
@@ -42,10 +42,12 @@ public class VRHeadphonesUsingMouse {
 
 	private void pollInput() throws InterruptedException {
 		// Use the mouse
-//		float dXNew = Mouse.getDX() * MOUSE_SENSITIVITY;
-//		float dYNew = Mouse.getDY() * MOUSE_SENSITIVITY;
-//		dX -= dXNew;
-//		dY += dYNew;
+		if (Mouse.isButtonDown(0)) {
+			float dXNew = Mouse.getDX() * MOUSE_SENSITIVITY;
+			float dYNew = Mouse.getDY() * MOUSE_SENSITIVITY;
+			dX -= dXNew;
+			dY += dYNew;
+		}
 		
 		// Use keyboard
 		if (Keyboard.isKeyDown(Keyboard.KEY_RIGHT))
