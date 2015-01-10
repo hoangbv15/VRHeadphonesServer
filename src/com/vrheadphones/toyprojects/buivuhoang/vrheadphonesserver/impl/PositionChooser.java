@@ -10,8 +10,13 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -29,7 +34,13 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class PositionChooser {
-	private boolean isFileChanged = true;
+	private static String CHARSET = "US-ASCII";
+	private boolean isFileLoaded = false;
+	// File chooser for open/save scenario dialogs
+	private JFileChooser chooser;
+	private File currentFile;
+	
+	private boolean isScenarioModified = true;
 	private List<Sound3D> soundList;
 	
 	public static String FRAME_TITLE = "VR Headphones Server";
@@ -45,6 +56,12 @@ public class PositionChooser {
 	private JPanel instructionsPanel = new JPanel();
 	
 	public PositionChooser() {
+		// Setting up 
+		chooser = new JFileChooser();
+		FileNameExtensionFilter filter = new FileNameExtensionFilter(
+				"Scenario files", "scn");
+		chooser.setFileFilter(filter);
+		
 		soundList = positionFieldPanel.getSoundList();
 	}
 
@@ -92,19 +109,35 @@ public class PositionChooser {
 		menuBar.add(menu);
 
 //		// Open wave file
-//		menuItem = new JMenuItem("Open Mono Wave File", KeyEvent.VK_O);
-//		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1,
-//				ActionEvent.ALT_MASK));
-//		menuItem.getAccessibleContext().setAccessibleDescription(
-//				"Opens a mono wave file to use as a 3D sound source");
-//		menuItem.addActionListener(new OpenWaveFileAction());
-//		menu.add(menuItem);
-//		
-//		// Close
-//		menu.addSeparator();
+		menuItem = new JMenuItem("Open Scenario", KeyEvent.VK_O);
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1,
+				ActionEvent.ALT_MASK));
+		menuItem.getAccessibleContext().setAccessibleDescription(
+				"Opens a saved scenario");
+		menuItem.addActionListener(new OpenScenarioFileAction());
+		menu.add(menuItem);
+		
+		menuItem = new JMenuItem("Save Scenario", KeyEvent.VK_S);
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2,
+				ActionEvent.ALT_MASK));
+		menuItem.getAccessibleContext().setAccessibleDescription(
+				"Save a scenario");
+		menuItem.addActionListener(new SaveScenarioFileAction());
+		menu.add(menuItem);
+		
+		menuItem = new JMenuItem("Save Scenario As", KeyEvent.VK_A);
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_3,
+				ActionEvent.ALT_MASK));
+		menuItem.getAccessibleContext().setAccessibleDescription(
+				"Save a scenario as");
+		menuItem.addActionListener(new SaveScenarioAsFileAction());
+		menu.add(menuItem);
+		
+		// Close
+		menu.addSeparator();
 
 		menuItem = new JMenuItem("Exit", KeyEvent.VK_E);
-		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2,
+		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_4,
 				ActionEvent.ALT_MASK));
 		menuItem.getAccessibleContext().setAccessibleDescription(
 				"Closes the programme");
@@ -113,6 +146,89 @@ public class PositionChooser {
 
 		frame.setJMenuBar(menuBar);
 	}
+	
+	private class OpenScenarioFileAction implements ActionListener
+    {
+        public void actionPerformed(ActionEvent e)
+        {
+        	// Loads the scenario file from your file system
+    		int returnVal = chooser.showOpenDialog(null);
+    		if (returnVal == JFileChooser.APPROVE_OPTION) {
+    			
+    			currentFile = chooser.getSelectedFile();
+    			
+    			String path = currentFile.getParentFile().getAbsolutePath();
+    			Charset charset = Charset.forName(CHARSET);
+    			try (BufferedReader reader = Files.newBufferedReader(currentFile.toPath(), charset)) {
+    			    String line = null;
+    			    List<Sound3D> soundList = new ArrayList<Sound3D>();
+    			    while ((line = reader.readLine()) != null) {
+    			    	// parse the scenario file
+    			    	String[] splittedLine = line.split("\t+");
+    			    	float x = Float.parseFloat(splittedLine[1]);
+    			    	float y = Float.parseFloat(splittedLine[2]);
+    			    	Sound3D newSound = new Sound3D(x, y, 0);
+    			    	newSound.waveFile = new File(path + "\\" + splittedLine[0]);
+    			    	soundList.add(newSound);
+    			    }
+    			    reader.close();
+    			    positionFieldPanel.setSoundListInternal(soundList);
+    			    // File loaded, set this to true to prevent save from opening a new dialog
+    			    isFileLoaded = true;
+    			    
+    			    // refresh the new changes
+    			    refresh();
+    			} catch (IOException x) {
+    			    System.err.format("IOException: %s%n", x);
+    			}
+    		}
+        }
+    }
+	
+	private File openSaveDialog() {
+		int returnVal = chooser.showSaveDialog(null);
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			return chooser.getSelectedFile();
+		}
+		return null;
+	}
+	
+	private void saveToFile(File file) {
+		String s = "";
+    	for (Sound3D sound: positionFieldPanel.getSoundListInternal())
+    		s += sound.waveFile.getName() + "\t" + sound.x + "\t" + sound.y + "\n";
+    	Charset charset = Charset.forName(CHARSET);
+    	try (BufferedWriter writer = Files.newBufferedWriter(file.toPath(), charset)) {
+    	    writer.write(s, 0, s.length());
+    	    writer.close();
+    	} catch (IOException x) {
+    	    System.err.format("IOException: %s%n", x);
+    	}
+	}
+	
+	private class SaveScenarioFileAction implements ActionListener
+    {
+        public void actionPerformed(ActionEvent e)
+        {
+        	if (!isScenarioModified)
+        		return;
+        	if (!isFileLoaded)
+        		currentFile = openSaveDialog();
+        	
+        	saveToFile(currentFile);
+        	isFileLoaded = true;
+        }
+    }
+	
+	private class SaveScenarioAsFileAction implements ActionListener
+    {
+        public void actionPerformed(ActionEvent e)
+        {
+        	currentFile = openSaveDialog();
+        	saveToFile(currentFile);
+        	isFileLoaded = true;
+        }
+    }
 	
 	// Exit app
     private static class ExitAppAction implements ActionListener
@@ -123,12 +239,16 @@ public class PositionChooser {
         }
     }
     
+    private void refresh() {
+    	isScenarioModified = true;
+    	soundList = positionFieldPanel.getSoundList();
+    }
+    
     private class OKButtonAction implements ActionListener
     {
         public void actionPerformed(ActionEvent e)
         {
-        	isFileChanged = true;
-        	soundList = positionFieldPanel.getSoundList();
+        	refresh();
 //        	for (Sound3D pos: positionFieldPanel.getSoundList())
 //        		System.out.println(pos.waveFile.getName() + ": " + pos.x + " " + pos.y);
         }
@@ -180,9 +300,9 @@ public class PositionChooser {
 		appFrame.pack();
 	}
 
-	public boolean isFileChanged() {
-		if (isFileChanged) {
-			isFileChanged = false;
+	public boolean isScenarioModified() {
+		if (isScenarioModified) {
+			isScenarioModified = false;
 			return true;
 		} 
 		return false;
@@ -197,7 +317,7 @@ public class PositionChooser {
 			public void run() {
 				PositionChooser appMainView = new PositionChooser();
 				appMainView.createAndShowGUI();
-				appMainView.setIpAddress("127.0.0.1");
+//				appMainView.setIpAddress("127.0.0.1");
 			}
 		});
 	}

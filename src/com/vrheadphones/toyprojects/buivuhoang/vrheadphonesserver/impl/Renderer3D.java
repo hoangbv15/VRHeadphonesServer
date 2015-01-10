@@ -54,7 +54,7 @@ public class Renderer3D implements Runnable {
 	
 	private static Camera camera;
 //	private static float[] camPosition = {-1.38f, 1.36f, 10f};
-	private static float[] camPosition = {0.5f, 0.5f, 0};
+	private static float[] camPosition = {0.5f, 0.5f, 3f};
 	private static List<Integer> displayList;
 //	private static int shaderProgram;
 	
@@ -97,6 +97,8 @@ public class Renderer3D implements Runnable {
     	GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);          // Clear The Screen And The Depth Buffer
 
         GL11.glLoadIdentity();                          // Reset The Current Modelview Matrix
+        
+        
         
         camera.setRotation((float)Math.toDegrees(thetaY), (float)Math.toDegrees(thetaX), (float)Math.toDegrees(thetaZ));
         camera.applyTranslations();
