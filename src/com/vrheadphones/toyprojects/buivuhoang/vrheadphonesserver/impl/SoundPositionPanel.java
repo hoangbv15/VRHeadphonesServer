@@ -6,25 +6,18 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Stroke;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.imageio.ImageIO;
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
-import javax.swing.KeyStroke;
 import javax.swing.event.MouseInputAdapter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -41,6 +34,9 @@ public class SoundPositionPanel extends JPanel {
 	
 	private List<Sound3D> rawList = new ArrayList<Sound3D>();
 	private List<Sound3D> selected = new ArrayList<Sound3D>();
+	
+	// variables to control mouse dragging
+	private Sound3D currentSound;
 	
 	public SoundPositionPanel() {
 		try {
@@ -101,7 +97,7 @@ public class SoundPositionPanel extends JPanel {
 	
     private class ControlListener extends MouseInputAdapter implements KeyListener {
     	private boolean shift_hold = false;
-		
+    	
 		@Override
 		public void mousePressed(MouseEvent e) {
 			requestFocus();
@@ -114,22 +110,22 @@ public class SoundPositionPanel extends JPanel {
 				updatePosition(e, newRawPos);
 	    	}
 	    	
-	    	Sound3D pos = rawList.get(index);
+	    	currentSound = rawList.get(index);
 	    	
 	    	// Double clicking
 			if (e.getClickCount() == 2 && !e.isConsumed()) {
 			     e.consume();
-			     OpenWaveFileAction(pos);
+			     OpenWaveFileAction(currentSound);
 			}
 			else if (shift_hold)
-				if (!selected.contains(pos))
-					selected.add(pos);
+				if (!selected.contains(currentSound))
+					selected.add(currentSound);
 				else
-					selected.remove(pos);
+					selected.remove(currentSound);
 			else {
-				if (!selected.contains(pos)) {
+				if (!selected.contains(currentSound)) {
 					selected.clear();
-					selected.add(pos);
+					selected.add(currentSound);
 				} else
 					selected.clear();
 			}
@@ -139,10 +135,7 @@ public class SoundPositionPanel extends JPanel {
 		
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			int index = isWithinSetPosition(e.getX(), e.getY());
-			if (index >= 0) {
-				updatePosition(e, rawList.get(index));
-			}
+			updatePosition(e, currentSound);
 		}
     	
 		private void updatePosition(MouseEvent e, Sound3D rawPost) {

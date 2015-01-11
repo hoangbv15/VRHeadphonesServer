@@ -10,7 +10,6 @@ package com.vrheadphones.toyprojects.buivuhoang.vrheadphonesserver.impl;
 
 import static org.lwjgl.opengl.GL11.glCallList;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,14 +19,12 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import org.lwjgl.opengl.GL11;
-import org.lwjgl.opengl.GL20;
 import org.lwjgl.util.glu.GLU;
 
 import utility.BufferTools;
 import utility.Camera;
 import utility.EulerCamera;
 import utility.OBJLoader;
-import utility.ShaderLoader;
 
 /**
  * @author Mark Bernard
