@@ -162,7 +162,7 @@ public class PositionChooser {
     			    	float x = Float.parseFloat(splittedLine[1]);
     			    	float y = Float.parseFloat(splittedLine[2]);
     			    	Sound3D newSound = new Sound3D(x, y, 0);
-    			    	newSound.waveFile = new File(path + "\\" + splittedLine[0]);
+    			    	newSound.waveFile = new File(path + File.separator + splittedLine[0]);
     			    	soundList.add(newSound);
     			    }
     			    reader.close();
