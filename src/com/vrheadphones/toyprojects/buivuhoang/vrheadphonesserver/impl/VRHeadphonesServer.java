@@ -19,7 +19,7 @@ public class VRHeadphonesServer {
 	private String sHost = "";
 	
 	private Timer timer;
-	private PositionChooser appMainView;
+	private MainUserInterface appMainView;
 	private OSCWorld world;
 	private Renderer3D renderer;
 	public VRHeadphonesServer() {
@@ -55,7 +55,7 @@ public class VRHeadphonesServer {
 		
 		// Schedule a job for the event dispatch thread:
 		// creating and showing this application's GUI.
-		appMainView = new PositionChooser();
+		appMainView = new MainUserInterface();
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				appMainView.createAndShowGUI();

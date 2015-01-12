@@ -13,6 +13,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ResourceBundle;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -27,35 +28,48 @@ import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-public class PositionChooser {
-	private static String CHARSET = "US-ASCII";
+public class MainUserInterface {
+	public static final ResourceBundle RESOURCE = ResourceBundle.getBundle("res.localisation.lang");
+	
+	public static String FRAME_TITLE = RESOURCE.getString("FRAME_TITLE");
+	public static final String SCENE_EXTENSION = RESOURCE.getString("SCENE_EXTENSION");
+	public static final String SCENE_DESCRIPTION = RESOURCE.getString("SCENE_DESCRIPTION");
+	private static String CHARSET = RESOURCE.getString("CHARSET");
+	
+	private static final String INSTRUCTIONSLINE4 = RESOURCE.getString("INSTRUCTIONSLINE4");
+	private static final String INSTRUCTIONSLINE3 = RESOURCE.getString("INSTRUCTIONSLINE3");
+	private static final String INSTRUCTIONSLINE2 = RESOURCE.getString("INSTRUCTIONSLINE2");;
+	private static final String INSTRUCTIONSLINE1 = RESOURCE.getString("INSTRUCTIONSLINE1");
+	private static final String EXIT_DESCRIPTION = RESOURCE.getString("MENUITEM_EXIT_DESCRIPTION");
+	private static final String EXIT = RESOURCE.getString("MENUITEM_EXIT");
+	private static final String SAVE_SCENARIO_AS_DESCRIPTION = RESOURCE.getString("MENUITEM_SAVESCENARIOAS_DESCRIPTION");
+	private static final String SAVE_SCENARIO_AS = RESOURCE.getString("MENUITEM_SAVESCENARIOAS");
+	private static final String SAVE_SCENARIO_DESCRIPTION = RESOURCE.getString("MENUITEM_SAVESCENARIO_DESCRIPTION");
+	private static final String SAVE_SCENARIO = RESOURCE.getString("MENUITEM_SAVESCENARIO");
+	private static final String OPENS_SCENARIO_DESCRIPTION = RESOURCE.getString("MENUITEM_OPENSCENARIO_DESCRIPTION");
+	private static final String OPEN_SCENARIO = RESOURCE.getString("MENUITEM_OPENSCENARIO");
+	private static final String FILE = RESOURCE.getString("MENU_FILE");
+	private JButton okButton = new JButton(RESOURCE.getString("OK_BUTTON"));
+	private JButton deleteButton = new JButton(RESOURCE.getString("DELETE_BUTTON"));
+	
 	private boolean isFileLoaded = false;
 	// File chooser for open/save scenario dialogs
-	private JFileChooser chooser;
 	private File currentFile;
+	private JFileChooser fileChooser = new JFileChooser();
 	
 	private boolean isScenarioModified = true;
 	private List<Sound3D> soundList;
 	
-	public static String FRAME_TITLE = "VR Headphones Server";
 	public static boolean RIGHT_TO_LEFT = false;
 
-	private JButton okButton = new JButton("OK");
-	private JButton deleteButton = new JButton("Delete");
-	
-	private SoundPositionPanel positionFieldPanel = new SoundPositionPanel();
+	private SoundPositionPanel positionFieldPanel = new SoundPositionPanel(fileChooser);
 
 	private JFrame appFrame;
 	private JPanel buttonPanel = new JPanel();
 	private JPanel instructionsPanel = new JPanel();
 	
-	public PositionChooser() {
+	public MainUserInterface() {
 		// Setting up 
-		chooser = new JFileChooser();
-		FileNameExtensionFilter filter = new FileNameExtensionFilter(
-				"Scenario files", "scn");
-		chooser.setFileFilter(filter);
-		
 		soundList = positionFieldPanel.getSoundList();
 	}
 
@@ -98,43 +112,43 @@ public class PositionChooser {
 		menuBar = new JMenuBar();
 
 		// Build the first menu.
-		menu = new JMenu("File");
+		menu = new JMenu(FILE);
 		menu.setMnemonic(KeyEvent.VK_A);
 		menuBar.add(menu);
 
 //		// Open wave file
-		menuItem = new JMenuItem("Open Scenario", KeyEvent.VK_O);
+		menuItem = new JMenuItem(OPEN_SCENARIO, KeyEvent.VK_O);
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_1,
 				ActionEvent.ALT_MASK));
 		menuItem.getAccessibleContext().setAccessibleDescription(
-				"Opens a saved scenario");
+				OPENS_SCENARIO_DESCRIPTION);
 		menuItem.addActionListener(new OpenScenarioFileAction());
 		menu.add(menuItem);
 		
-		menuItem = new JMenuItem("Save Scenario", KeyEvent.VK_S);
+		menuItem = new JMenuItem(SAVE_SCENARIO, KeyEvent.VK_S);
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_2,
 				ActionEvent.ALT_MASK));
 		menuItem.getAccessibleContext().setAccessibleDescription(
-				"Save a scenario");
+				SAVE_SCENARIO_DESCRIPTION);
 		menuItem.addActionListener(new SaveScenarioFileAction());
 		menu.add(menuItem);
 		
-		menuItem = new JMenuItem("Save Scenario As", KeyEvent.VK_A);
+		menuItem = new JMenuItem(SAVE_SCENARIO_AS, KeyEvent.VK_A);
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_3,
 				ActionEvent.ALT_MASK));
 		menuItem.getAccessibleContext().setAccessibleDescription(
-				"Save a scenario as");
+				SAVE_SCENARIO_AS_DESCRIPTION);
 		menuItem.addActionListener(new SaveScenarioAsFileAction());
 		menu.add(menuItem);
 		
 		// Close
 		menu.addSeparator();
 
-		menuItem = new JMenuItem("Exit", KeyEvent.VK_E);
+		menuItem = new JMenuItem(EXIT, KeyEvent.VK_E);
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_4,
 				ActionEvent.ALT_MASK));
 		menuItem.getAccessibleContext().setAccessibleDescription(
-				"Closes the programme");
+				EXIT_DESCRIPTION);
 		menuItem.addActionListener(new ExitAppAction());
 		menu.add(menuItem);
 
@@ -145,11 +159,14 @@ public class PositionChooser {
     {
         public void actionPerformed(ActionEvent e)
         {
+        	FileNameExtensionFilter sceneFilter = new FileNameExtensionFilter(
+    				SCENE_DESCRIPTION, SCENE_EXTENSION);
+        	fileChooser.setFileFilter(sceneFilter);
         	// Loads the scenario file from your file system
-    		int returnVal = chooser.showOpenDialog(null);
+    		int returnVal = fileChooser.showOpenDialog(null);
     		if (returnVal == JFileChooser.APPROVE_OPTION) {
     			
-    			currentFile = chooser.getSelectedFile();
+    			currentFile = fileChooser.getSelectedFile();
     			
     			String path = currentFile.getParentFile().getAbsolutePath();
     			Charset charset = Charset.forName(CHARSET);
@@ -180,9 +197,12 @@ public class PositionChooser {
     }
 	
 	private File openSaveDialog() {
-		int returnVal = chooser.showSaveDialog(null);
+		FileNameExtensionFilter sceneFilter = new FileNameExtensionFilter(
+				SCENE_DESCRIPTION, SCENE_EXTENSION);
+    	fileChooser.setFileFilter(sceneFilter);
+		int returnVal = fileChooser.showSaveDialog(null);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
-			return chooser.getSelectedFile();
+			return fileChooser.getSelectedFile();
 		}
 		return null;
 	}
@@ -282,10 +302,10 @@ public class PositionChooser {
 		instructionsPanel.removeAll();
 
 		String[] instructions = {
-				"The VRHeadphonesServer application is now running.", "",
-				"Your IP address is: " + ipAddress, "",
-				"Enter this IP address on the start screen of the",
-				"VRHeadphones application on your phone to begin." };
+				INSTRUCTIONSLINE1, "",
+				INSTRUCTIONSLINE2 + ipAddress, "",
+				INSTRUCTIONSLINE3,
+				INSTRUCTIONSLINE4 };
 
 		for (String s : instructions) {
 			JLabel label = new JLabel(s);
@@ -309,7 +329,7 @@ public class PositionChooser {
 	public static void main(String[] args) {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				PositionChooser appMainView = new PositionChooser();
+				MainUserInterface appMainView = new MainUserInterface();
 				appMainView.createAndShowGUI();
 //				appMainView.setIpAddress("127.0.0.1");
 			}

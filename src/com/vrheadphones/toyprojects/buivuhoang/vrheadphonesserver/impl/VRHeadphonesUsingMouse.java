@@ -11,12 +11,12 @@ public class VRHeadphonesUsingMouse {
 	private static final float KEYBOARD_SENSITIVITY = 0.05f;
 	private float dX = 0.0f;
 	private float dY = 0.0f;
-	private PositionChooser appMainView;
+	private MainUserInterface appMainView;
 
 	public void start() {
 		// Schedule a job for the event dispatch thread:
 		// creating and showing this application's GUI.
-		appMainView = new PositionChooser();
+		appMainView = new MainUserInterface();
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				appMainView.createAndShowGUI();
