@@ -294,6 +294,7 @@ public class MainUserInterface {
 			appFrame.pack();
 		}
 		appFrame.setVisible(true);
+		appFrame.setResizable(false);
 	}
 
 	public void updateRotationalData(float x, float y, float z) {}
