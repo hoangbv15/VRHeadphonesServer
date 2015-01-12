@@ -35,6 +35,8 @@ public class SoundPositionPanel extends JPanel {
 	private List<Sound3D> rawList = new ArrayList<Sound3D>();
 	private List<Sound3D> selected = new ArrayList<Sound3D>();
 	
+	private JFileChooser chooser;
+	
 	// variables to control mouse dragging
 	private Sound3D currentSound;
 	
@@ -42,6 +44,12 @@ public class SoundPositionPanel extends JPanel {
 		try {
 			image = ImageIO.read(getClass().getClassLoader().getResourceAsStream(TARGET_IMAGE));
 			circle = ImageIO.read(getClass().getClassLoader().getResourceAsStream(CIRCLE_IMAGE));
+			
+			chooser = new JFileChooser();
+			FileNameExtensionFilter filter = new FileNameExtensionFilter(
+					"WAVE sound files", "wav");
+			chooser.setFileFilter(filter);
+			
 			ControlListener controlListener = new ControlListener();
 			addMouseListener(controlListener);
 			addMouseMotionListener(controlListener);
@@ -85,10 +93,6 @@ public class SoundPositionPanel extends JPanel {
 	// Opens a wave file to use as a 3D sound source
 	private void OpenWaveFileAction(Sound3D sound) {
 		// Loads the wave file from your file system
-		JFileChooser chooser = new JFileChooser();
-		FileNameExtensionFilter filter = new FileNameExtensionFilter(
-				"WAVE sound files", "wav");
-		chooser.setFileFilter(filter);
 		int returnVal = chooser.showOpenDialog(null);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			sound.waveFile = chooser.getSelectedFile();
