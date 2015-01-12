@@ -29,6 +29,9 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class MainUserInterface {
+	private static final String DEFAULT_SOUND_NAME = "default";
+	private static final String DOT_EXT = ".";
+
 	public static final ResourceBundle RESOURCE = ResourceBundle.getBundle("res.localisation.lang");
 	
 	public static String FRAME_TITLE = RESOURCE.getString("FRAME_TITLE");
@@ -179,7 +182,8 @@ public class MainUserInterface {
     			    	float x = Float.parseFloat(splittedLine[1]);
     			    	float y = Float.parseFloat(splittedLine[2]);
     			    	Sound3D newSound = new Sound3D(x, y, 0);
-    			    	newSound.waveFile = new File(path + File.separator + splittedLine[0]);
+    			    	if (!DEFAULT_SOUND_NAME.equals(splittedLine[0]))
+    			    		newSound.waveFile = new File(path + File.separator + splittedLine[0]);
     			    	soundList.add(newSound);
     			    }
     			    reader.close();
@@ -202,15 +206,23 @@ public class MainUserInterface {
     	fileChooser.setFileFilter(sceneFilter);
 		int returnVal = fileChooser.showSaveDialog(null);
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
-			return fileChooser.getSelectedFile();
+			File selectedFile = fileChooser.getSelectedFile();
+			if (!sceneFilter.accept(selectedFile)) {
+				selectedFile = new File(selectedFile.getPath() + DOT_EXT + SCENE_EXTENSION);
+			}
+			return selectedFile;
 		}
 		return null;
 	}
 	
 	private void saveToFile(File file) {
 		String s = "";
-    	for (Sound3D sound: positionFieldPanel.getSoundListInternal())
-    		s += sound.waveFile.getName() + "\t" + sound.x + "\t" + sound.y + "\n";
+    	for (Sound3D sound: positionFieldPanel.getSoundListInternal()) {
+    		String soundName = DEFAULT_SOUND_NAME;
+    		if (sound.waveFile != null)
+    			soundName = sound.waveFile.getName();
+    		s += soundName + "\t" + sound.x + "\t" + sound.y + "\n";
+    	}
     	Charset charset = Charset.forName(CHARSET);
     	try (BufferedWriter writer = Files.newBufferedWriter(file.toPath(), charset)) {
     	    writer.write(s, 0, s.length());
