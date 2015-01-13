@@ -15,7 +15,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -54,13 +57,23 @@ public class MainUserInterface {
 	private static final String FILE = RESOURCE.getString("MENU_FILE");
 	private JButton okButton = new JButton(RESOURCE.getString("OK_BUTTON"));
 	private JButton deleteButton = new JButton(RESOURCE.getString("DELETE_BUTTON"));
+	private ImageIcon playIcon = new ImageIcon(getClass().getClassLoader().getResource(RESOURCE.getString("PLAY_ICON")));
+	private ImageIcon pauseIcon = new ImageIcon(getClass().getClassLoader().getResource(RESOURCE.getString("PAUSE_ICON")));
+	private ImageIcon stopIcon = new ImageIcon(getClass().getClassLoader().getResource(RESOURCE.getString("STOP_ICON")));
+	private JButton playButton = new JButton(playIcon);
+	private JButton stopButton = new JButton(stopIcon);
 	
-	private boolean isFileLoaded = false;
+	private volatile boolean isPaused = false;
+	private volatile boolean isStopped = false;
+	private volatile boolean isPlayedInternal = false;
+	private volatile boolean isPlayed = false;
+	
+	private volatile boolean isFileLoaded = false;
 	// File chooser for open/save scenario dialogs
 	private File currentFile;
 	private JFileChooser fileChooser = new JFileChooser();
 	
-	private boolean isScenarioModified = true;
+	private volatile boolean isScenarioModified = true;
 	private List<Sound3D> soundList;
 	
 	public static boolean RIGHT_TO_LEFT = false;
@@ -79,6 +92,11 @@ public class MainUserInterface {
 	private void addComponentsToPane(Container pane) {
 		okButton.addActionListener(new OKButtonAction());
 		deleteButton.addActionListener(new DeleteButtonAction());
+		playButton.addActionListener(new PlayButtonAction());
+		stopButton.addActionListener(new StopButtonAction());
+//		playButton.setBorder(BorderFactory.createEmptyBorder());
+//		stopButton.setBorder(BorderFactory.createEmptyBorder());
+//		playButton.setBorderPainted(false);
 		buttonPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		positionFieldPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		instructionsPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -101,6 +119,8 @@ public class MainUserInterface {
 				BoxLayout.LINE_AXIS));
 		buttonPanel.add(deleteButton);
 		buttonPanel.add(okButton);
+		buttonPanel.add(playButton);
+		buttonPanel.add(stopButton);
 		
 		pane.add(buttonPanel, BorderLayout.SOUTH);
 	}
@@ -268,6 +288,7 @@ public class MainUserInterface {
     private void refresh() {
     	isScenarioModified = true;
     	soundList = positionFieldPanel.getSoundList();
+    	resetMediaControls();
     }
     
     private class OKButtonAction implements ActionListener
@@ -286,6 +307,37 @@ public class MainUserInterface {
         {
         	positionFieldPanel.deleteSelected();
         }
+    }
+    
+    private class PlayButtonAction implements ActionListener
+    {
+        public void actionPerformed(ActionEvent e)
+        {
+        	if (!isPlayedInternal) {
+        		isPlayed = true;
+        		isPaused = false;
+        		isPlayedInternal = true;
+        		playButton.setIcon(pauseIcon);
+        	} else {
+        		isPlayed = false;
+        		isPaused = true;
+        		resetMediaControls();
+        	}
+        }
+    }
+    
+    private class StopButtonAction implements ActionListener
+    {
+        public void actionPerformed(ActionEvent e)
+        {
+        	isStopped = true;
+        	resetMediaControls();
+        }
+    }
+    
+    private void resetMediaControls() {
+    	isPlayedInternal = false;
+		playButton.setIcon(playIcon);
     }
 
 	/**
@@ -330,6 +382,30 @@ public class MainUserInterface {
 	public boolean isScenarioModified() {
 		if (isScenarioModified) {
 			isScenarioModified = false;
+			return true;
+		} 
+		return false;
+	}
+	
+	public boolean isPlayed() {
+		if (isPlayed) {
+			isPlayed = false;
+			return true;
+		} 
+		return false;
+	}
+	
+	public boolean isPaused() {
+		if (isPaused) {
+			isPaused = false;
+			return true;
+		} 
+		return false;
+	}
+	
+	public boolean isStopped() {
+		if (isStopped) {
+			isStopped = false;
 			return true;
 		} 
 		return false;

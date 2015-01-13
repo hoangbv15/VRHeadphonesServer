@@ -76,8 +76,8 @@ public class SoundPlayer3D {
 		AL10.alSource(source.get(index), AL10.AL_POSITION, sourcePos);
 	}
 
-	public static void play(List<Sound3D> soundList) {
-		stop();
+	public static void loadSoundList(List<Sound3D> soundList) {
+		clean();
 		NUM_SOURCES = soundList.size();
 		NUM_BUFFERS = NUM_SOURCES;
 		init();
@@ -86,12 +86,24 @@ public class SoundPlayer3D {
 			System.out.println("Error loading data.");
 			return;
 		}
-		for (int i = 0; i < soundList.size(); i++) {
+	}
+	
+	public static void play() {
+		for (int i = 0; i < NUM_SOURCES; i++)
 			AL10.alSourcePlay(source.get(i));
-		}
+	}
+	
+	public static void pause() {
+		for (int i = 0; i < NUM_SOURCES; i++)
+			AL10.alSourcePause(source.get(i));
+	}
+	
+	public static void stop() {
+		for (int i = 0; i < NUM_SOURCES; i++)
+			AL10.alSourceStop(source.get(i));
 	}
 
-	public static void stop() {
+	public static void clean() {
 		// AL10.alSourceStop(source.get(0));
 		// killALData();
 		AL.destroy();

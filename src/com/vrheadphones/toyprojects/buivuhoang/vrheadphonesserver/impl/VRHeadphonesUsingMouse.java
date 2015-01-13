@@ -61,11 +61,11 @@ public class VRHeadphonesUsingMouse {
 			dY -= KEYBOARD_SENSITIVITY;
 		
 		renderer.setRotationAngle(dX, dY, 0);
-
+		
 		List<Sound3D> soundList = appMainView.getSoundList();
 
 		if (!SoundPlayer3D.isPlaying() || appMainView.isScenarioModified()) {
-			SoundPlayer3D.play(soundList);
+			SoundPlayer3D.loadSoundList(soundList);
 			renderer.setRotationAngle(0, 0, 0);
 			Thread.sleep(500); 
 			Renderer3D.setSoundList(soundList);
@@ -74,11 +74,24 @@ public class VRHeadphonesUsingMouse {
 			// Sleep to wait for the renderer to finish rendering the reseted camera angle
 			// Fail to do this, and the coordinates will be messed up
 		}
-
-		for (int i = 0; i < soundList.size(); i++) {
-			Sound3D sound = soundList.get(i);
-			sound.rotate(dX, dY, 0);
-			SoundPlayer3D.setSourcePosition(i, sound.x, sound.y, sound.z);
+		
+		if (appMainView.isPaused()) {
+			SoundPlayer3D.pause();
+			return;
+		} else if (appMainView.isPlayed()) {
+			SoundPlayer3D.play();
+		} else if (appMainView.isStopped()) {
+			SoundPlayer3D.stop();
+			return;
+		}
+		
+		// Only update sound position when we are playing
+		if (SoundPlayer3D.isPlaying()) {
+			for (int i = 0; i < soundList.size(); i++) {
+				Sound3D sound = soundList.get(i);
+				sound.rotate(dX, dY, 0);
+				SoundPlayer3D.setSourcePosition(i, sound.x, sound.y, sound.z);
+			}
 		}
 
 	}

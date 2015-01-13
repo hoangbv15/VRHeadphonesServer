@@ -74,7 +74,6 @@ public class Renderer3D implements Runnable {
 
 	public Renderer3D(Object monitor) {
 		this.monitor = monitor;
-
 	}
 
 	private void inputPoll() {

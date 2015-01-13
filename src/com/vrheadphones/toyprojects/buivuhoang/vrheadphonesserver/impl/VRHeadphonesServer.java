@@ -22,6 +22,10 @@ public class VRHeadphonesServer {
 	private MainUserInterface appMainView;
 	private OSCWorld world;
 	private Renderer3D renderer;
+	
+	// Rotation of the user's head
+	private volatile float thetaX, thetaY, thetaZ;
+	
 	public VRHeadphonesServer() {
 
 		// get local IP
@@ -62,25 +66,28 @@ public class VRHeadphonesServer {
 				appMainView.setIpAddress(sHost);
 			}
 		});
-		
-		try {
-			renderer = new Renderer3D(this);
-			Renderer3D.setSoundList(appMainView.getSoundList());
-			Thread t = new Thread(renderer);
-	        t.start();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 	
-	public void updateRotationAngle(float thetaX, float thetaY, float thetaZ) {
+	public void mainLoop() {
 		renderer.setRotationAngle(thetaX, thetaY, thetaZ);
 				
 		List<Sound3D> soundList = appMainView.getSoundList();
-		
+
 		if (!SoundPlayer3D.isPlaying() || appMainView.isScenarioModified()) {
-			SoundPlayer3D.play(soundList);
-			Renderer3D.setSoundList(soundList);
+			SoundPlayer3D.loadSoundList(soundList);
+			SoundPlayer3D.play();
+			try {
+				renderer.setRotationAngle(0, 0, 0);
+				Thread.sleep(500);
+				Renderer3D.setSoundList(soundList);
+				renderer.setRotationAngle(0, 0, 0);
+				Thread.sleep(500);
+				// Sleep to wait for the renderer to finish rendering the reseted camera angle
+				// Fail to do this, and the coordinates will be messed up
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} 			
 		}
 		
 		for (int i = 0; i < soundList.size(); i++) {
@@ -90,7 +97,22 @@ public class VRHeadphonesServer {
 		}        
 	}
 	
+	public void updateRotationAngle(float thetaX, float thetaY, float thetaZ) {
+		this.thetaX = thetaX;
+		this.thetaY = thetaY;
+		this.thetaZ = thetaZ;
+	}
+	
 	public void start() {
+		try {
+			renderer = new Renderer3D(this);
+			Renderer3D.setSoundList(appMainView.getSoundList());
+			Thread t = new Thread(renderer);
+	        t.start();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 		this.timer = new Timer(500, new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
 				world.onEnter();
@@ -98,6 +120,9 @@ public class VRHeadphonesServer {
 			}
 		});
 		this.timer.start();
+		
+		while (!Renderer3D.isCloseRequested())
+			mainLoop();
 	}
 	
 	public static void main(String[] args) {
