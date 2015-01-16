@@ -15,7 +15,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ResourceBundle;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
@@ -44,7 +43,6 @@ public class SoundPositionPanel extends JPanel {
 	private JFileChooser waveChooser;
 	
 	private volatile float thetaX = 0;
-	private volatile float thetaY = 0;
 		
 	// variables to control mouse dragging
 	private Sound3D currentSound;

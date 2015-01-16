@@ -11,7 +11,10 @@ public class VRHeadphonesUsingMouse {
 	private static final float KEYBOARD_SENSITIVITY = 0.05f;
 	private float dX = 0.0f;
 	private float dY = 0.0f;
-	private float thetaX = 0.0f;
+	
+	// Use a Sound3D object to store the arrow's vector
+	private Sound3D rotationVector = new Sound3D(0, 1, 0);
+	
 	private MainUserInterface appMainView;
 
 	public void start() {
@@ -21,7 +24,6 @@ public class VRHeadphonesUsingMouse {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				appMainView.createAndShowGUI();
-//				appMainView.setIpAddress("None");
 			}
 		});
 
@@ -31,7 +33,6 @@ public class VRHeadphonesUsingMouse {
 			Thread t = new Thread(renderer);
 			t.start();
 			Thread.sleep(1000);
-//			Mouse.setGrabbed(true);
 			while (!Renderer3D.isCloseRequested()) {
 				pollInput();
 			}
@@ -48,24 +49,29 @@ public class VRHeadphonesUsingMouse {
 			float dYNew = Mouse.getDY() * MOUSE_SENSITIVITY;
 			dX -= dXNew;
 			dY += dYNew;
-			thetaX -= dXNew;
 		}
 		
 		// Use keyboard
 		if (Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) {
 			dX += KEYBOARD_SENSITIVITY;
-			thetaX += KEYBOARD_SENSITIVITY;
 		}
 		else if (Keyboard.isKeyDown(Keyboard.KEY_LEFT)) {
 			dX -= KEYBOARD_SENSITIVITY;
-			thetaX -= KEYBOARD_SENSITIVITY;
 		}
 		if (Keyboard.isKeyDown(Keyboard.KEY_DOWN))
 			dY += KEYBOARD_SENSITIVITY;
 		else if (Keyboard.isKeyDown(Keyboard.KEY_UP))
 			dY -= KEYBOARD_SENSITIVITY;
 		
-		appMainView.updateRotationalData((float)(Math.asin(thetaX)));
+		// Rotate the vector, then calculate the current angle in Radians
+		rotationVector.rotate(dX, dY, 0);
+		float angle = 0;
+		if (rotationVector.y >= 0)
+			angle = (float) -Math.atan(rotationVector.x/rotationVector.y);
+		else
+			angle = (float) (Math.PI + (Math.atan(-rotationVector.x/rotationVector.y)));
+		appMainView.updateRotationalData(angle);
+
 		renderer.setRotationAngle(dX, dY, 0);
 		
 		List<Sound3D> soundList = appMainView.getSoundList();
