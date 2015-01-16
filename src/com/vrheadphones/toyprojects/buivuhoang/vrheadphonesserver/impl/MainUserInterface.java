@@ -361,7 +361,9 @@ public class MainUserInterface {
 		appFrame.setResizable(false);
 	}
 
-	public void updateRotationalData(float x, float y, float z) {}
+	public void updateRotationalData(float thetaX) {
+		positionFieldPanel.updateRotationAngle(thetaX);
+	}
 
 	public void setIpAddress(String ipAddress) {
 		instructionsPanel.removeAll();

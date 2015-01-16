@@ -69,6 +69,7 @@ public class VRHeadphonesServer {
 	}
 	
 	public void mainLoop() {
+		appMainView.updateRotationalData(thetaX);
 		renderer.setRotationAngle(thetaX, thetaY, thetaZ);
 				
 		List<Sound3D> soundList = appMainView.getSoundList();

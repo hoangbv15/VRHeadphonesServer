@@ -9,6 +9,7 @@ import java.awt.Stroke;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -30,27 +31,32 @@ public class SoundPositionPanel extends JPanel {
 	public static final String WAV_DESCRIPTION = MainUserInterface.RESOURCE.getString("WAV_DESCRIPTION");
 	private static final String TARGET_IMAGE = MainUserInterface.RESOURCE.getString("TARGET_IMAGE");
 	private static final String CIRCLE_IMAGE = MainUserInterface.RESOURCE.getString("CIRCLE_IMAGE");
+	private static final String ARROW_IMAGE = MainUserInterface.RESOURCE.getString("ARROW_IMAGE");
 	private static final int FONT_SIZE = Integer.parseInt(MainUserInterface.RESOURCE.getString("FONT_SIZE"));
 	private static final int FILENAME_LENGTH = Integer.parseInt(MainUserInterface.RESOURCE.getString("FILENAME_LENGTH"));
 	private static final String FONT_FACE = MainUserInterface.RESOURCE.getString("FONT_FACE");
 
-	private BufferedImage image, circle;
+	private BufferedImage targetBoard, circle, arrow;
 
 	private List<Sound3D> rawList = new ArrayList<Sound3D>();
 	private List<Sound3D> selected = new ArrayList<Sound3D>();
 
 	private JFileChooser waveChooser;
 	
-
+	private volatile float thetaX = 0;
+	private volatile float thetaY = 0;
+		
 	// variables to control mouse dragging
 	private Sound3D currentSound;
 
 	public SoundPositionPanel(JFileChooser waveChooser) {
 		try {
-			image = ImageIO.read(getClass().getClassLoader()
+			targetBoard = ImageIO.read(getClass().getClassLoader()
 					.getResourceAsStream(TARGET_IMAGE));
 			circle = ImageIO.read(getClass().getClassLoader()
 					.getResourceAsStream(CIRCLE_IMAGE));
+			arrow = ImageIO.read(getClass().getClassLoader()
+					.getResourceAsStream(ARROW_IMAGE));
 
 			this.waveChooser = waveChooser;
 			ControlListener controlListener = new ControlListener();
@@ -87,8 +93,8 @@ public class SoundPositionPanel extends JPanel {
 	public void addSampleSounds() {
 		// Add a default sound
 
-		float x = image.getWidth() / 2 + 100;
-		float y = -4 * 40 + image.getHeight() / 2;
+		float x = targetBoard.getWidth() / 2 + 100;
+		float y = -4 * 40 + targetBoard.getHeight() / 2;
 
 		Sound3D defaultSound = new Sound3D(x, y, 0);
 		rawList.add(defaultSound);
@@ -188,7 +194,8 @@ public class SoundPositionPanel extends JPanel {
 	@Override
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		g.drawImage(image, 0, 0, null);
+		g.drawImage(targetBoard, 0, 0, null);
+		
 		for (int i = 0; i < rawList.size(); i++) {
 			Sound3D pos = rawList.get(i);
 			int x = (int) pos.x - circle.getWidth() / 2;
@@ -216,6 +223,19 @@ public class SoundPositionPanel extends JPanel {
 				g2D.fill(dashedStroke.createStrokedShape(rect));
 			}
 		}
+		
+		AffineTransform identity = new AffineTransform();
+		Graphics2D g2d = (Graphics2D)g;
+		AffineTransform trans = new AffineTransform();
+		trans.setTransform(identity);
+		trans.translate(targetBoard.getWidth()/2 - arrow.getWidth()/2, targetBoard.getHeight()/2 - arrow.getHeight()/2);
+		trans.rotate( thetaX, arrow.getWidth()/2, arrow.getHeight()/2);
+		g2d.drawImage(arrow, trans, this);
+	}
+	
+	public void updateRotationAngle(float thetaX) {
+		this.thetaX = thetaX;
+		repaint();
 	}
 
 	public void deleteSelected() {
@@ -229,7 +249,7 @@ public class SoundPositionPanel extends JPanel {
 
 	@Override
 	public Dimension getPreferredSize() {
-		Dimension size = new Dimension(image.getWidth(), image.getHeight());
+		Dimension size = new Dimension(targetBoard.getWidth(), targetBoard.getHeight());
 		return size;
 	}
 
@@ -241,8 +261,8 @@ public class SoundPositionPanel extends JPanel {
 			// System.out.println(rawPost.waveFile.getName() + "\t" + rawPost.x
 			// + "\t" + rawPost.y);
 
-			float x = ((float) rawPost.x - image.getWidth() / 2) / 40;
-			float y = -((float) rawPost.y - image.getHeight() / 2) / 40;
+			float x = ((float) rawPost.x - targetBoard.getWidth() / 2) / 40;
+			float y = -((float) rawPost.y - targetBoard.getHeight() / 2) / 40;
 			Sound3D calculatedPos = new Sound3D(x, y, 0);
 			calculatedPos.waveFile = rawPost.waveFile;
 			calculatedList.add(calculatedPos);

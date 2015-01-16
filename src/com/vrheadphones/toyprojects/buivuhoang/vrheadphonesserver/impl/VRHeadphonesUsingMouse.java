@@ -11,6 +11,7 @@ public class VRHeadphonesUsingMouse {
 	private static final float KEYBOARD_SENSITIVITY = 0.05f;
 	private float dX = 0.0f;
 	private float dY = 0.0f;
+	private float thetaX = 0.0f;
 	private MainUserInterface appMainView;
 
 	public void start() {
@@ -47,19 +48,24 @@ public class VRHeadphonesUsingMouse {
 			float dYNew = Mouse.getDY() * MOUSE_SENSITIVITY;
 			dX -= dXNew;
 			dY += dYNew;
+			thetaX -= dXNew;
 		}
 		
 		// Use keyboard
-		if (Keyboard.isKeyDown(Keyboard.KEY_RIGHT))
+		if (Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) {
 			dX += KEYBOARD_SENSITIVITY;
-		else if (Keyboard.isKeyDown(Keyboard.KEY_LEFT))
+			thetaX += KEYBOARD_SENSITIVITY;
+		}
+		else if (Keyboard.isKeyDown(Keyboard.KEY_LEFT)) {
 			dX -= KEYBOARD_SENSITIVITY;
-
+			thetaX -= KEYBOARD_SENSITIVITY;
+		}
 		if (Keyboard.isKeyDown(Keyboard.KEY_DOWN))
 			dY += KEYBOARD_SENSITIVITY;
 		else if (Keyboard.isKeyDown(Keyboard.KEY_UP))
 			dY -= KEYBOARD_SENSITIVITY;
 		
+		appMainView.updateRotationalData((float)(Math.asin(thetaX)));
 		renderer.setRotationAngle(dX, dY, 0);
 		
 		List<Sound3D> soundList = appMainView.getSoundList();
