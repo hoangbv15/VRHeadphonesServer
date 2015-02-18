@@ -15,12 +15,12 @@ public class VRHeadphonesUsingMouse {
 	// Use a Sound3D object to store the arrow's vector
 	private Sound3D rotationVector = new Sound3D(0, 1, 0);
 	
-	private MainUserInterface appMainView;
+	private GraphicalUserInterface appMainView;
 
 	public void start() {
 		// Schedule a job for the event dispatch thread:
 		// creating and showing this application's GUI.
-		appMainView = new MainUserInterface();
+		appMainView = new GraphicalUserInterface(new SoundPlayer3DInterfaceAdapter());
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				appMainView.createAndShowGUI();
@@ -85,16 +85,6 @@ public class VRHeadphonesUsingMouse {
 			Thread.sleep(500);
 			// Sleep to wait for the renderer to finish rendering the reseted camera angle
 			// Fail to do this, and the coordinates will be messed up
-		}
-		
-		if (appMainView.isPaused()) {
-			SoundPlayer3D.pause();
-			return;
-		} else if (appMainView.isPlayed()) {
-			SoundPlayer3D.play();
-		} else if (appMainView.isStopped()) {
-			SoundPlayer3D.stop();
-			return;
 		}
 		
 		// Only update sound position when we are playing

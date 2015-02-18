@@ -19,7 +19,7 @@ public class VRHeadphonesServer {
 	private String sHost = "";
 	
 	private Timer timer;
-	private MainUserInterface appMainView;
+	private GraphicalUserInterface appMainView;
 	private OSCWorld world;
 	private Renderer3D renderer;
 	
@@ -59,7 +59,7 @@ public class VRHeadphonesServer {
 		
 		// Schedule a job for the event dispatch thread:
 		// creating and showing this application's GUI.
-		appMainView = new MainUserInterface();
+		appMainView = new GraphicalUserInterface(new SoundPlayer3DInterfaceAdapter());
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				appMainView.createAndShowGUI();
@@ -76,7 +76,7 @@ public class VRHeadphonesServer {
 
 		if (appMainView.isScenarioModified()) {
 			SoundPlayer3D.loadSoundList(soundList);
-			SoundPlayer3D.play();
+//			SoundPlayer3D.play();
 			try {
 				renderer.setRotationAngle(0, 0, 0);
 				Thread.sleep(500);

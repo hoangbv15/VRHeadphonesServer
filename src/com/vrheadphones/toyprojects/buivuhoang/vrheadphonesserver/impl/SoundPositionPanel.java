@@ -26,14 +26,14 @@ public class SoundPositionPanel extends JPanel {
 
 	private static final long serialVersionUID = -5319234978792101719L;
 	
-	public static final String WAV_EXTENSION = MainUserInterface.RESOURCE.getString("WAV_EXTENSION");
-	public static final String WAV_DESCRIPTION = MainUserInterface.RESOURCE.getString("WAV_DESCRIPTION");
-	private static final String TARGET_IMAGE = MainUserInterface.RESOURCE.getString("TARGET_IMAGE");
-	private static final String CIRCLE_IMAGE = MainUserInterface.RESOURCE.getString("CIRCLE_IMAGE");
-	private static final String ARROW_IMAGE = MainUserInterface.RESOURCE.getString("ARROW_IMAGE");
-	private static final int FONT_SIZE = Integer.parseInt(MainUserInterface.RESOURCE.getString("FONT_SIZE"));
-	private static final int FILENAME_LENGTH = Integer.parseInt(MainUserInterface.RESOURCE.getString("FILENAME_LENGTH"));
-	private static final String FONT_FACE = MainUserInterface.RESOURCE.getString("FONT_FACE");
+	public static final String WAV_EXTENSION = GraphicalUserInterface.SYSRES.getString("WAV_EXTENSION");
+	public static final String WAV_DESCRIPTION = GraphicalUserInterface.LANGRES.getString("WAV_DESCRIPTION");
+	private static final String TARGET_IMAGE = GraphicalUserInterface.SYSRES.getString("TARGET_IMAGE");
+	private static final String CIRCLE_IMAGE = GraphicalUserInterface.SYSRES.getString("CIRCLE_IMAGE");
+	private static final String ARROW_IMAGE = GraphicalUserInterface.SYSRES.getString("ARROW_IMAGE");
+	private static final int FONT_SIZE = Integer.parseInt(GraphicalUserInterface.SYSRES.getString("FONT_SIZE"));
+	private static final int FILENAME_LENGTH = Integer.parseInt(GraphicalUserInterface.SYSRES.getString("FILENAME_LENGTH"));
+	private static final String FONT_FACE = GraphicalUserInterface.SYSRES.getString("FONT_FACE");
 
 	private BufferedImage targetBoard, circle, arrow;
 

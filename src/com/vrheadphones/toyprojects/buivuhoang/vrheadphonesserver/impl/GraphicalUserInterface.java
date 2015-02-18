@@ -15,9 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
-import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -31,41 +29,41 @@ import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-public class MainUserInterface {
+import com.vrheadphones.toyprojects.buivuhoang.vrheadphonesserver.InterfaceAdapterAbstract;
+
+public class GraphicalUserInterface {
 	private static final String DEFAULT_SOUND_NAME = "default";
 	private static final String DOT_EXT = ".";
 
-	public static final ResourceBundle RESOURCE = ResourceBundle.getBundle("res.localisation.lang");
+	public static final ResourceBundle LANGRES = ResourceBundle.getBundle("res.localisation.lang");
+	public static final ResourceBundle SYSRES = ResourceBundle.getBundle("res.localisation.system");
 	
-	public static String FRAME_TITLE = RESOURCE.getString("FRAME_TITLE");
-	public static final String SCENE_EXTENSION = RESOURCE.getString("SCENE_EXTENSION");
-	public static final String SCENE_DESCRIPTION = RESOURCE.getString("SCENE_DESCRIPTION");
-	private static String CHARSET = RESOURCE.getString("CHARSET");
+	public static String FRAME_TITLE = LANGRES.getString("FRAME_TITLE");
+	public static final String SCENE_EXTENSION = SYSRES.getString("SCENE_EXTENSION");
+	public static final String SCENE_DESCRIPTION = LANGRES.getString("SCENE_DESCRIPTION");
+	private static String CHARSET = SYSRES.getString("CHARSET");
 	
-	private static final String INSTRUCTIONSLINE4 = RESOURCE.getString("INSTRUCTIONSLINE4");
-	private static final String INSTRUCTIONSLINE3 = RESOURCE.getString("INSTRUCTIONSLINE3");
-	private static final String INSTRUCTIONSLINE2 = RESOURCE.getString("INSTRUCTIONSLINE2");;
-	private static final String INSTRUCTIONSLINE1 = RESOURCE.getString("INSTRUCTIONSLINE1");
-	private static final String EXIT_DESCRIPTION = RESOURCE.getString("MENUITEM_EXIT_DESCRIPTION");
-	private static final String EXIT = RESOURCE.getString("MENUITEM_EXIT");
-	private static final String SAVE_SCENARIO_AS_DESCRIPTION = RESOURCE.getString("MENUITEM_SAVESCENARIOAS_DESCRIPTION");
-	private static final String SAVE_SCENARIO_AS = RESOURCE.getString("MENUITEM_SAVESCENARIOAS");
-	private static final String SAVE_SCENARIO_DESCRIPTION = RESOURCE.getString("MENUITEM_SAVESCENARIO_DESCRIPTION");
-	private static final String SAVE_SCENARIO = RESOURCE.getString("MENUITEM_SAVESCENARIO");
-	private static final String OPENS_SCENARIO_DESCRIPTION = RESOURCE.getString("MENUITEM_OPENSCENARIO_DESCRIPTION");
-	private static final String OPEN_SCENARIO = RESOURCE.getString("MENUITEM_OPENSCENARIO");
-	private static final String FILE = RESOURCE.getString("MENU_FILE");
-	private JButton okButton = new JButton(RESOURCE.getString("OK_BUTTON"));
-	private JButton deleteButton = new JButton(RESOURCE.getString("DELETE_BUTTON"));
-	private ImageIcon playIcon = new ImageIcon(getClass().getClassLoader().getResource(RESOURCE.getString("PLAY_ICON")));
-	private ImageIcon pauseIcon = new ImageIcon(getClass().getClassLoader().getResource(RESOURCE.getString("PAUSE_ICON")));
-	private ImageIcon stopIcon = new ImageIcon(getClass().getClassLoader().getResource(RESOURCE.getString("STOP_ICON")));
+	private static final String INSTRUCTIONSLINE4 = LANGRES.getString("INSTRUCTIONSLINE4");
+	private static final String INSTRUCTIONSLINE3 = LANGRES.getString("INSTRUCTIONSLINE3");
+	private static final String INSTRUCTIONSLINE2 = LANGRES.getString("INSTRUCTIONSLINE2");;
+	private static final String INSTRUCTIONSLINE1 = LANGRES.getString("INSTRUCTIONSLINE1");
+	private static final String EXIT_DESCRIPTION = LANGRES.getString("MENUITEM_EXIT_DESCRIPTION");
+	private static final String EXIT = LANGRES.getString("MENUITEM_EXIT");
+	private static final String SAVE_SCENARIO_AS_DESCRIPTION = LANGRES.getString("MENUITEM_SAVESCENARIOAS_DESCRIPTION");
+	private static final String SAVE_SCENARIO_AS = LANGRES.getString("MENUITEM_SAVESCENARIOAS");
+	private static final String SAVE_SCENARIO_DESCRIPTION = LANGRES.getString("MENUITEM_SAVESCENARIO_DESCRIPTION");
+	private static final String SAVE_SCENARIO = LANGRES.getString("MENUITEM_SAVESCENARIO");
+	private static final String OPENS_SCENARIO_DESCRIPTION = LANGRES.getString("MENUITEM_OPENSCENARIO_DESCRIPTION");
+	private static final String OPEN_SCENARIO = LANGRES.getString("MENUITEM_OPENSCENARIO");
+	private static final String FILE = LANGRES.getString("MENU_FILE");
+	private JButton okButton = new JButton(LANGRES.getString("OK_BUTTON"));
+	private JButton deleteButton = new JButton(LANGRES.getString("DELETE_BUTTON"));
+	private ImageIcon playIcon = new ImageIcon(getClass().getClassLoader().getResource(SYSRES.getString("PLAY_ICON")));
+	private ImageIcon pauseIcon = new ImageIcon(getClass().getClassLoader().getResource(SYSRES.getString("PAUSE_ICON")));
+	private ImageIcon stopIcon = new ImageIcon(getClass().getClassLoader().getResource(SYSRES.getString("STOP_ICON")));
 	private JButton playButton = new JButton(playIcon);
 	private JButton stopButton = new JButton(stopIcon);
 	
-	private volatile boolean isPaused = false;
-	private volatile boolean isStopped = false;
-	private volatile boolean isPlayedInternal = false;
 	private volatile boolean isPlayed = false;
 	
 	private volatile boolean isFileLoaded = false;
@@ -84,9 +82,12 @@ public class MainUserInterface {
 	private JPanel buttonPanel = new JPanel();
 	private JPanel instructionsPanel = new JPanel();
 	
-	public MainUserInterface() {
+	private InterfaceAdapterAbstract interfaceAdapter;
+	
+	public GraphicalUserInterface(InterfaceAdapterAbstract interfaceAdapter) {
 		// Setting up 
 		soundList = positionFieldPanel.getSoundList();
+		this.interfaceAdapter = interfaceAdapter;
 	}
 
 	private void addComponentsToPane(Container pane) {
@@ -313,14 +314,16 @@ public class MainUserInterface {
     {
         public void actionPerformed(ActionEvent e)
         {
-        	if (!isPlayedInternal) {
+        	if (!isPlayed) {
+        		// Play
         		isPlayed = true;
-        		isPaused = false;
-        		isPlayedInternal = true;
         		playButton.setIcon(pauseIcon);
+        		if (interfaceAdapter != null)
+        			interfaceAdapter.playButtonPressed();
         	} else {
-        		isPlayed = false;
-        		isPaused = true;
+        		// Pause
+        		if (interfaceAdapter != null)
+        			interfaceAdapter.pauseButtonPressed();
         		resetMediaControls();
         	}
         }
@@ -330,13 +333,15 @@ public class MainUserInterface {
     {
         public void actionPerformed(ActionEvent e)
         {
-        	isStopped = true;
+        	// Stop
+        	if (interfaceAdapter != null)
+    			interfaceAdapter.stopButtonPressed();
         	resetMediaControls();
         }
     }
     
     private void resetMediaControls() {
-    	isPlayedInternal = false;
+    	isPlayed = false;
 		playButton.setIcon(playIcon);
     }
 
@@ -388,31 +393,7 @@ public class MainUserInterface {
 		} 
 		return false;
 	}
-	
-	public boolean isPlayed() {
-		if (isPlayed) {
-			isPlayed = false;
-			return true;
-		} 
-		return false;
-	}
-	
-	public boolean isPaused() {
-		if (isPaused) {
-			isPaused = false;
-			return true;
-		} 
-		return false;
-	}
-	
-	public boolean isStopped() {
-		if (isStopped) {
-			isStopped = false;
-			return true;
-		} 
-		return false;
-	}
-	
+		
 	public List<Sound3D> getSoundList() {
 		return soundList;
 	}
@@ -420,7 +401,7 @@ public class MainUserInterface {
 	public static void main(String[] args) {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				MainUserInterface appMainView = new MainUserInterface();
+				GraphicalUserInterface appMainView = new GraphicalUserInterface(null);
 				appMainView.createAndShowGUI();
 //				appMainView.setIpAddress("127.0.0.1");
 			}
