@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Stroke;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -42,6 +43,7 @@ public class SoundPositionPanel extends JPanel {
 
 	private JFileChooser waveChooser;
 	
+	// The degree in which the arrow in the middle of the image should rotate
 	private volatile float thetaX = 0;
 		
 	// variables to control mouse dragging
@@ -55,7 +57,7 @@ public class SoundPositionPanel extends JPanel {
 					.getResourceAsStream(CIRCLE_IMAGE));
 			arrow = ImageIO.read(getClass().getClassLoader()
 					.getResourceAsStream(ARROW_IMAGE));
-
+			
 			this.waveChooser = waveChooser;
 			ControlListener controlListener = new ControlListener();
 			addMouseListener(controlListener);
@@ -91,8 +93,8 @@ public class SoundPositionPanel extends JPanel {
 	public void addSampleSounds() {
 		// Add a default sound
 
-		float x = targetBoard.getWidth() / 2 + 100;
-		float y = -4 * 40 + targetBoard.getHeight() / 2;
+		float x = 0.75f;
+		float y = 0.5f;
 
 		Sound3D defaultSound = new Sound3D(x, y, 0);
 		rawList.add(defaultSound);
@@ -153,8 +155,9 @@ public class SoundPositionPanel extends JPanel {
 		}
 
 		private void updatePosition(MouseEvent e, Sound3D rawPost) {
-			rawPost.x = e.getX();
-			rawPost.y = e.getY();
+			// Calculate the relative position of the source to the centre of the image
+			rawPost.x = 1 - e.getX() * 2/(float)getWidth();
+			rawPost.y = 1 - e.getY() * 2/(float)getHeight();
 			repaint();
 		}
 
@@ -182,8 +185,10 @@ public class SoundPositionPanel extends JPanel {
 	protected int isWithinSetPosition(int x, int y) {
 		for (int i = 0; i < rawList.size(); i++) {
 			Sound3D pos = rawList.get(i);
-			if (Math.abs(x - pos.x) < circle.getWidth() / 2
-					&& Math.abs(y - pos.y) < circle.getHeight() / 2)
+			int posx = (int) ((1.0f - pos.x) * getWidth() / 2.0f);
+			int posy = (int) ((1.0f - pos.y) * getHeight() / 2.0f);
+			if (Math.abs(x - posx) < circle.getWidth() / 2
+					&& Math.abs(y - posy) < circle.getHeight() / 2)
 				return i;
 		}
 		return -1;
@@ -196,13 +201,17 @@ public class SoundPositionPanel extends JPanel {
 		
 		for (int i = 0; i < rawList.size(); i++) {
 			Sound3D pos = rawList.get(i);
-			int x = (int) pos.x - circle.getWidth() / 2;
-			int y = (int) pos.y - circle.getHeight() / 2;
+			// Calculate the absolute position of each sound source 
+			int x = (int) ((1.0f - pos.x) * getWidth() / 2.0f) - circle.getWidth() / 2;
+			int y = (int) ((1.0f - pos.y) * getHeight() / 2.0f) - circle.getHeight() / 2;
 			g.setFont(new Font(FONT_FACE, Font.PLAIN, FONT_SIZE));
+			
+			// Draw a circle representing a sound source
 			g.drawImage(circle, x, y, null);
-			g.drawString("" + (i + 1), (int) pos.x - FONT_SIZE / 4, (int) pos.y
-					+ FONT_SIZE / 3);
+			// Draw the numbering of the sound source
+			g.drawString("" + (i + 1), (int) x - FONT_SIZE / 4 + circle.getWidth() / 2, (int) y	+ FONT_SIZE / 3 + circle.getHeight() / 2);
 
+			// Draw the name of the sound source
 			if (pos.waveFile != null) {
 				g.drawString(
 						truncateString(pos.waveFile.getName(), FILENAME_LENGTH),
@@ -255,12 +264,8 @@ public class SoundPositionPanel extends JPanel {
 		List<Sound3D> calculatedList = new ArrayList<Sound3D>();
 
 		for (Sound3D rawPost : rawList) {
-
-			// System.out.println(rawPost.waveFile.getName() + "\t" + rawPost.x
-			// + "\t" + rawPost.y);
-
-			float x = ((float) rawPost.x - targetBoard.getWidth() / 2) / 40;
-			float y = -((float) rawPost.y - targetBoard.getHeight() / 2) / 40;
+			float x = -rawPost.x * 5;
+			float y = rawPost.y * 5;
 			Sound3D calculatedPos = new Sound3D(x, y, 0);
 			calculatedPos.waveFile = rawPost.waveFile;
 			calculatedList.add(calculatedPos);
@@ -283,4 +288,28 @@ public class SoundPositionPanel extends JPanel {
 
 		return newString;
 	}
+
+	public void resizePanel() {
+		// TODO Implement resize image
+		targetBoard = resize(targetBoard, this.getWidth(), this.getHeight());
+		repaint();
+	}
+	
+	/**
+	 * Returns a scaled (resized) BufferedImage of the original one
+	 * @param img
+	 * @param newW
+	 * @param newH
+	 * @return the resized image
+	 */
+	public static BufferedImage resize(BufferedImage img, int newW, int newH) { 
+	    Image tmp = img.getScaledInstance(newW, newH, Image.SCALE_SMOOTH);
+	    BufferedImage dimg = new BufferedImage(newW, newH, BufferedImage.TYPE_INT_ARGB);
+
+	    Graphics2D g2d = dimg.createGraphics();
+	    g2d.drawImage(tmp, 0, 0, null);
+	    g2d.dispose();
+
+	    return dimg;
+	}  
 }
