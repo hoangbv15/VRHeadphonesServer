@@ -74,7 +74,7 @@ public class VRHeadphonesServer {
 				
 		List<Sound3D> soundList = appMainView.getSoundList();
 
-		if (appMainView.isScenarioModified()) {
+		if (appMainView.isRefreshButtonPressed()) {
 			SoundPlayer3D.loadSoundList(soundList);
 //			SoundPlayer3D.play();
 			try {

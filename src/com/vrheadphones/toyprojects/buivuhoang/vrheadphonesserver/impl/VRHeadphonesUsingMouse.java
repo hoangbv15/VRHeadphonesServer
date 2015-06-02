@@ -76,7 +76,7 @@ public class VRHeadphonesUsingMouse {
 		
 		List<Sound3D> soundList = appMainView.getSoundList();
 
-		if (appMainView.isScenarioModified()) {
+		if (appMainView.isRefreshButtonPressed()) {
 			SoundPlayer3D.loadSoundList(soundList);
 			renderer.setRotationAngle(0, 0, 0);
 			Thread.sleep(500); 

@@ -71,10 +71,12 @@ public class GraphicalUserInterface {
 	
 	private volatile boolean isFileLoaded = false;
 	// File chooser for open/save scenario dialogs
+	
+	private volatile boolean isRefreshButtonPressed = true;
+	
 	private File currentFile;
 	private JFileChooser fileChooser = new JFileChooser();
 	
-	private volatile boolean isScenarioModified = true;
 	private List<Sound3D> soundList;
 	
 	public static boolean RIGHT_TO_LEFT = false;
@@ -260,7 +262,7 @@ public class GraphicalUserInterface {
     {
         public void actionPerformed(ActionEvent e)
         {
-        	if (!isScenarioModified)
+        	if (!positionFieldPanel.isScenarioModified())
         		return;
         	if (!isFileLoaded)
         		currentFile = openSaveDialog();
@@ -290,7 +292,7 @@ public class GraphicalUserInterface {
     }
     
     private void refresh() {
-    	isScenarioModified = true;
+    	isRefreshButtonPressed = true;
     	soundList = positionFieldPanel.getSoundList();
     	resetMediaControls();
     }
@@ -389,11 +391,11 @@ public class GraphicalUserInterface {
 		appFrame.pack();
 	}
 
-	public boolean isScenarioModified() {
-		if (isScenarioModified) {
-			isScenarioModified = false;
+	public boolean isRefreshButtonPressed() {
+		if (isRefreshButtonPressed) {
+			isRefreshButtonPressed = false;
 			return true;
-		} 
+		}
 		return false;
 	}
 		

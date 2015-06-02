@@ -48,6 +48,8 @@ public class SoundPositionPanel extends JPanel {
 		
 	// variables to control mouse dragging
 	private Sound3D currentSound;
+	
+	private boolean isScenarioModified = false;
 
 	public SoundPositionPanel(JFileChooser waveChooser) {
 		try {
@@ -159,6 +161,7 @@ public class SoundPositionPanel extends JPanel {
 			rawPost.x = 1 - e.getX() * 2/(float)getWidth();
 			rawPost.y = 1 - e.getY() * 2/(float)getHeight();
 			repaint();
+			isScenarioModified = true;
 		}
 
 		@Override
@@ -287,5 +290,13 @@ public class SoundPositionPanel extends JPanel {
 		}
 
 		return newString;
+	}
+	
+	public boolean isScenarioModified() {
+		return isScenarioModified;
+	}
+
+	public void setScenarioModified(boolean isScenarioModified) {
+		this.isScenarioModified = isScenarioModified;
 	}
 }
