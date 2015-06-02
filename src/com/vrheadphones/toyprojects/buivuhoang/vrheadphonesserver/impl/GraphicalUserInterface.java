@@ -343,14 +343,6 @@ public class GraphicalUserInterface {
         }
     }
     
-    private class ResizeListener extends AbstractResizeListener
-    {
-		@Override
-		public void componentResized(ComponentEvent arg0) {
-			positionFieldPanel.resizePanel();
-		}
-    }
-    
     private void resetMediaControls() {
     	isPlayed = false;
 		playButton.setIcon(playIcon);
@@ -375,7 +367,6 @@ public class GraphicalUserInterface {
 		}
 		appFrame.setVisible(true);
 		appFrame.setResizable(true);
-		appFrame.addComponentListener(new ResizeListener());
 	}
 
 	public void updateRotationalData(float thetaX) {

@@ -197,7 +197,7 @@ public class SoundPositionPanel extends JPanel {
 	@Override
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		g.drawImage(targetBoard, 0, 0, null);
+		g.drawImage(targetBoard, 0, 0, this.getWidth(), this.getHeight(), null);
 		
 		for (int i = 0; i < rawList.size(); i++) {
 			Sound3D pos = rawList.get(i);
@@ -235,7 +235,7 @@ public class SoundPositionPanel extends JPanel {
 		Graphics2D g2d = (Graphics2D)g;
 		AffineTransform trans = new AffineTransform();
 		trans.setTransform(identity);
-		trans.translate(targetBoard.getWidth()/2 - arrow.getWidth()/2, targetBoard.getHeight()/2 - arrow.getHeight()/2);
+		trans.translate(this.getWidth()/2 - arrow.getWidth()/2, this.getHeight()/2 - arrow.getHeight()/2);
 		trans.rotate( thetaX, arrow.getWidth()/2, arrow.getHeight()/2);
 		g2d.drawImage(arrow, trans, this);
 	}
@@ -288,28 +288,4 @@ public class SoundPositionPanel extends JPanel {
 
 		return newString;
 	}
-
-	public void resizePanel() {
-		// TODO Implement resize image
-		targetBoard = resize(targetBoard, this.getWidth(), this.getHeight());
-		repaint();
-	}
-	
-	/**
-	 * Returns a scaled (resized) BufferedImage of the original one
-	 * @param img
-	 * @param newW
-	 * @param newH
-	 * @return the resized image
-	 */
-	public static BufferedImage resize(BufferedImage img, int newW, int newH) { 
-	    Image tmp = img.getScaledInstance(newW, newH, Image.SCALE_SMOOTH);
-	    BufferedImage dimg = new BufferedImage(newW, newH, BufferedImage.TYPE_INT_ARGB);
-
-	    Graphics2D g2d = dimg.createGraphics();
-	    g2d.drawImage(tmp, 0, 0, null);
-	    g2d.dispose();
-
-	    return dimg;
-	}  
 }
