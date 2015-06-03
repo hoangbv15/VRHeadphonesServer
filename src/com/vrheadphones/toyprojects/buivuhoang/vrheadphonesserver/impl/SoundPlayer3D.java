@@ -2,17 +2,25 @@ package com.vrheadphones.toyprojects.buivuhoang.vrheadphonesserver.impl;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.List;
+
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.UnsupportedAudioFileException;
 
 import org.lwjgl.BufferUtils;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.openal.AL;
 import org.lwjgl.openal.AL10;
+import org.lwjgl.openal.AL11;
 import org.lwjgl.util.WaveData;
 
 public class SoundPlayer3D {
+	private static final String DEFAULT_FILEDIR = "src/";
 	private static final String DEFAULT_FILE = "Opera.wav";
 
 	/** Maximum data buffers we will need. */
@@ -34,7 +42,11 @@ public class SoundPlayer3D {
 	/** Velocity of the listener. */
 	private static FloatBuffer listenerVel = (FloatBuffer) BufferUtils.createFloatBuffer(3)
 			.put(new float[] { 0.0f, 0.0f, 0.0f }).rewind();
-
+	
+	
+	// test
+//	private static double durationInSeconds = 0;
+	
 	/**
 	 * Orientation of the listener. (first 3 elements are "at", second 3 are
 	 * "up")
@@ -91,6 +103,34 @@ public class SoundPlayer3D {
 	public static void play() {
 		for (int i = 0; i < NUM_SOURCES; i++)
 			AL10.alSourcePlay(source.get(i));
+		
+//		for (int i = 0; i < NUM_SOURCES; i++) {
+//			try {
+//				Thread.sleep(1000);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//
+//			int sizeInBytes = AL10.alGetBufferi(source.get(i), AL10.AL_SIZE);
+//			int channels = AL10.alGetBufferi(source.get(i), AL10.AL_CHANNELS);
+//			int bits = AL10.alGetBufferi(source.get(i), AL10.AL_BITS);
+//
+//			double lengthInSamples = sizeInBytes * 8
+//					/ (double) (channels * bits);
+//
+//			int frequency = AL10.alGetBufferi(source.get(i), AL10.AL_FREQUENCY);
+//
+//			durationInSeconds = lengthInSamples / (double) frequency;
+//
+//			System.out.println("sizeInBytes: " + sizeInBytes);
+//			System.out.println("channels: " + channels);
+//			System.out.println("bits: " + bits);
+//			System.out.println("lengthInSamples: " + lengthInSamples);
+//			System.out.println("frequency: " + frequency);
+//			System.out.println("durationInSeconds: " + durationInSeconds);
+//			System.out.println();
+//		}
 	}
 	
 	public static void pause() {
@@ -101,6 +141,16 @@ public class SoundPlayer3D {
 	public static void stop() {
 		for (int i = 0; i < NUM_SOURCES; i++)
 			AL10.alSourceStop(source.get(i));
+	}
+	
+	/***
+	 * This simply sets the position to play the song in the number of seconds
+	 * @param seconds
+	 */
+	public static void setPlayPosition(int seconds) {
+		for (int i = 0; i < NUM_SOURCES; i++) {
+			AL10.alSourcei(source.get(i), AL11.AL_SEC_OFFSET, seconds);
+		}
 	}
 
 	public static void clean() {
@@ -119,7 +169,7 @@ public class SoundPlayer3D {
 	private static int loadALData(List<Sound3D> soundList) {
 		// Load wav data into a buffer.
 		AL10.alGenBuffers(buffer);
-
+//		durationInSeconds = 0;
 		if (AL10.alGetError() != AL10.AL_NO_ERROR)
 			return AL10.AL_FALSE;
 
@@ -140,7 +190,24 @@ public class SoundPlayer3D {
 				ex.printStackTrace();
 				return AL10.AL_FALSE;
 			}
-
+			
+//			// Get the largest duration
+//			AudioInputStream audioInputStream;
+//			try {
+//				if (file == null)
+//					file = new File(DEFAULT_FILEDIR + DEFAULT_FILE);
+//				audioInputStream = AudioSystem.getAudioInputStream(file);
+//				AudioFormat format = audioInputStream.getFormat();
+//				long frames = audioInputStream.getFrameLength();
+//				double duration = (frames + 0.0) / format.getFrameRate();
+//				if (durationInSeconds < duration) {
+//					durationInSeconds = duration;
+//				}
+//
+//			} catch (UnsupportedAudioFileException | IOException e) {
+//				e.printStackTrace();
+//			}
+			
 			if (fin != null) {
 				try {
 					fin.close();
@@ -199,5 +266,33 @@ public class SoundPlayer3D {
 	private static void killALData() {
 		AL10.alDeleteSources(source);
 		AL10.alDeleteBuffers(buffer);
+	}
+
+	/***
+	 * This function returns the duration of a scenario
+	 * @param soundList - the list containing the sounds of a scenario
+	 * @return the largest duration of a sound in the list
+	 */
+	public static double getDurationInSeconds(List<Sound3D> soundList) {
+		AudioInputStream audioInputStream;
+		double durationInSeconds = 0;
+		for (int i = 0; i < soundList.size(); i++) {
+			Sound3D sound = soundList.get(i);
+			File file = sound.waveFile;
+			try {
+				if (file == null)
+					file = new File(DEFAULT_FILEDIR + DEFAULT_FILE);
+				audioInputStream = AudioSystem.getAudioInputStream(file);
+				AudioFormat format = audioInputStream.getFormat();
+				long frames = audioInputStream.getFrameLength();
+				double duration = (frames + 0.0) / format.getFrameRate();
+				if (durationInSeconds < duration) {
+					durationInSeconds = duration;
+				}
+			} catch (UnsupportedAudioFileException | IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return durationInSeconds;
 	}
 }

@@ -32,7 +32,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.vrheadphones.toyprojects.buivuhoang.vrheadphonesserver.AbstractResizeListener;
-import com.vrheadphones.toyprojects.buivuhoang.vrheadphonesserver.InterfaceAdapterAbstract;
+import com.vrheadphones.toyprojects.buivuhoang.vrheadphonesserver.InterfaceAdapter;
 
 public class GraphicalUserInterface {
 	private static final String DEFAULT_SOUND_NAME = "default";
@@ -82,20 +82,27 @@ public class GraphicalUserInterface {
 	public static boolean RIGHT_TO_LEFT = false;
 
 	private SoundPositionPanel positionFieldPanel = new SoundPositionPanel(fileChooser);
-
+	private SoundSliderPanel soundSliderPanel;
+	
 	private JFrame appFrame;
 	private JPanel buttonPanel = new JPanel();
 	private JPanel instructionsPanel = new JPanel();
 	
-	private InterfaceAdapterAbstract interfaceAdapter;
+	private InterfaceAdapter interfaceAdapter;
 	
-	public GraphicalUserInterface(InterfaceAdapterAbstract interfaceAdapter) {
+	private double durationInSeconds = 0;
+	
+	public GraphicalUserInterface(InterfaceAdapter interfaceAdapter) {
 		// Setting up 
 		soundList = positionFieldPanel.getSoundList();
 		this.interfaceAdapter = interfaceAdapter;
+		soundSliderPanel = new SoundSliderPanel(interfaceAdapter);
 	}
 
 	private void addComponentsToPane(Container pane) {
+		if (interfaceAdapter != null)
+			durationInSeconds = interfaceAdapter.getDurationInSeconds(soundList);
+		
 		okButton.addActionListener(new OKButtonAction());
 		deleteButton.addActionListener(new DeleteButtonAction());
 		playButton.addActionListener(new PlayButtonAction());
@@ -103,9 +110,11 @@ public class GraphicalUserInterface {
 //		playButton.setBorder(BorderFactory.createEmptyBorder());
 //		stopButton.setBorder(BorderFactory.createEmptyBorder());
 //		playButton.setBorderPainted(false);
+		
 		buttonPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		positionFieldPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		instructionsPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+		soundSliderPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		
 		if (!(pane.getLayout() instanceof BorderLayout)) {
 			pane.add(new JLabel("Container doesn't use BorderLayout!"));
@@ -128,7 +137,11 @@ public class GraphicalUserInterface {
 		buttonPanel.add(playButton);
 		buttonPanel.add(stopButton);
 		
-		pane.add(buttonPanel, BorderLayout.SOUTH);
+		JPanel southPanel = new JPanel();
+		southPanel.setLayout(new BoxLayout(southPanel, BoxLayout.PAGE_AXIS));
+		southPanel.add(buttonPanel);
+		southPanel.add(soundSliderPanel);
+		pane.add(southPanel, BorderLayout.SOUTH);
 	}
 
 	private void addMenuBar(JFrame frame) {
@@ -295,6 +308,9 @@ public class GraphicalUserInterface {
     	isRefreshButtonPressed = true;
     	soundList = positionFieldPanel.getSoundList();
     	resetMediaControls();
+    	if (interfaceAdapter != null) 
+    		durationInSeconds = interfaceAdapter.getDurationInSeconds(soundList);
+		soundSliderPanel.refreshSlider(durationInSeconds);
     }
     
     private class OKButtonAction implements ActionListener
@@ -323,12 +339,16 @@ public class GraphicalUserInterface {
         		// Play
         		isPlayed = true;
         		playButton.setIcon(pauseIcon);
-        		if (interfaceAdapter != null)
+        		if (interfaceAdapter != null) {
         			interfaceAdapter.playButtonPressed();
+        			soundSliderPanel.startPlaying();
+        		}
         	} else {
         		// Pause
-        		if (interfaceAdapter != null)
+        		if (interfaceAdapter != null) {
         			interfaceAdapter.pauseButtonPressed();
+        			soundSliderPanel.pausePlaying();
+        		}
         		resetMediaControls();
         	}
         }
@@ -339,8 +359,10 @@ public class GraphicalUserInterface {
         public void actionPerformed(ActionEvent e)
         {
         	// Stop
-        	if (interfaceAdapter != null)
+        	if (interfaceAdapter != null) {
     			interfaceAdapter.stopButtonPressed();
+    			soundSliderPanel.stopPlaying();
+        	}
         	resetMediaControls();
         }
     }
@@ -366,6 +388,7 @@ public class GraphicalUserInterface {
 			// setLayout(new BorderLayout());
 			// Display the window.
 			appFrame.pack();
+			refresh();
 		}
 		appFrame.setVisible(true);
 		appFrame.setResizable(true);

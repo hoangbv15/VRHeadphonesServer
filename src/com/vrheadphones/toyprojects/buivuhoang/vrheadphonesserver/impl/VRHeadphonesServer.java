@@ -60,6 +60,10 @@ public class VRHeadphonesServer {
 		// Schedule a job for the event dispatch thread:
 		// creating and showing this application's GUI.
 		appMainView = new GraphicalUserInterface(new SoundPlayer3DInterfaceAdapter());
+		
+		List<Sound3D> soundList = appMainView.getSoundList();
+		SoundPlayer3D.loadSoundList(soundList);
+		
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				appMainView.createAndShowGUI();
