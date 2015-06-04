@@ -1,10 +1,8 @@
 package com.vrheadphones.toyprojects.buivuhoang.vrheadphonesserver.impl;
 
-import java.awt.BorderLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -12,14 +10,12 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.MouseInputAdapter;
 
-import com.vrheadphones.toyprojects.buivuhoang.vrheadphonesserver.InterfaceAdapter;
+import com.vrheadphones.toyprojects.buivuhoang.vrheadphonesserver.SoundSliderPlayerLink;
 // TODO fix so that sound player doesn't loop the sounds and stops when all sounds finish
 public class SoundSliderPanel extends JPanel {
-	private InterfaceAdapter interfaceAdapter;
+	private SoundSliderPlayerLink playerLink;
 	private JSlider soundPositionSlider = new JSlider();
 	
 	private double durationInSeconds = 0;
@@ -29,8 +25,8 @@ public class SoundSliderPanel extends JPanel {
 	
 	private Timer timer;
 	
-	public SoundSliderPanel(InterfaceAdapter interfaceAdapter) {
-		this.interfaceAdapter = interfaceAdapter;
+	public SoundSliderPanel(SoundSliderPlayerLink playerLink) {
+		this.playerLink = playerLink;
 		soundPositionSlider.setEnabled(false);
 		soundPositionSlider.setMinimum(0);
 		soundPositionSlider.setMaximum(1);
@@ -71,7 +67,7 @@ public class SoundSliderPanel extends JPanel {
 	private class SoundSliderMouseListener extends MouseInputAdapter {
 		@Override
 		public void mouseReleased(MouseEvent arg0) {
-			updateSoundPlayer();
+			playerLink.updateSoundPlayer();
 		}
 	}
 	
@@ -84,46 +80,48 @@ public class SoundSliderPanel extends JPanel {
 					|| e.getKeyCode() == KeyEvent.VK_DOWN
 					|| e.getKeyCode() == KeyEvent.VK_PAGE_UP
 					|| e.getKeyCode() == KeyEvent.VK_PAGE_DOWN) {
-				updateSoundPlayer();
+				playerLink.updateSoundPlayer();
 			}
 		}
 	}
 	
-	private void updateSoundPlayer() {
-		int seconds = soundPositionSlider.getValue();
-		if (interfaceAdapter != null)
-			interfaceAdapter.setPlayPosition(seconds);
+//	public void startPlaying() {
+//		timer = new Timer();
+//	    timer.schedule(new DurationSliderTask(), 0, //initial delay
+//	        1 * 1000); //subsequent rate
+//	}
+//	
+//	public void stopPlaying() {
+//		if (timer != null) {
+//			System.out.println("stoppedplaying");
+//			timer.cancel();
+//			soundPositionSlider.setValue(0);
+//			formattedDuration = formatDuration((int)durationInSeconds);
+//			durationLabel.setText("0:00 / " + formattedDuration);
+//		}
+//	}
+//	
+//	public void pausePlaying() {
+//		if (timer != null) {
+//			timer.cancel();
+//		}
+//	}
+	
+	public int getPosition() {
+		return soundPositionSlider.getValue();
 	}
 	
-	public void startPlaying() {
-		System.out.println("start");
-		timer = new Timer();
-	    timer.schedule(new DurationSliderTask(), 0, //initial delay
-	        1 * 1000); //subsequent rate
-	}
-	
-	public void stopPlaying() {
-		if (timer != null) {
-			timer.cancel();
-			soundPositionSlider.setValue(0);
-			formattedDuration = formatDuration((int)durationInSeconds);
-			durationLabel.setText("0:00 / " + formattedDuration);
-		}
-	}
-	
-	public void pausePlaying() {
-		if (timer != null) {
-			timer.cancel();
-		}
-	}
-	
-	private class DurationSliderTask extends TimerTask {
-		public void run() {
-			int position = soundPositionSlider.getValue();
-			if (position < durationInSeconds) {
-				durationLabel.setText(formatDuration((int)position) + " / " + formattedDuration);
-				soundPositionSlider.setValue(++position);
-			}
-		}
-	}
+//	private class DurationSliderTask extends TimerTask {
+//		public void run() {
+//			int position = soundPositionSlider.getValue();
+//			if (position < durationInSeconds) {
+//				durationLabel.setText(formatDuration((int)position) + " / " + formattedDuration);
+//				soundPositionSlider.setValue(++position);
+//			}
+//			System.out.println(position);
+//			if (position > (int)durationInSeconds) {
+//				stopPlaying();
+//			}
+//		}
+//	}
 }

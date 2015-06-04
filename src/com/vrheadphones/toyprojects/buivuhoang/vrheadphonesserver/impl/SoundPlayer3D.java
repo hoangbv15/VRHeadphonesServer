@@ -77,8 +77,25 @@ public class SoundPlayer3D {
 		/** Velocity of the source sound. */
 		sourceVel = (FloatBuffer) BufferUtils.createFloatBuffer(3 * NUM_BUFFERS).rewind();
 	}
-
+	
+	/***
+	 * Check if at least one sound is being played back 
+	 */
 	public static boolean isPlaying() {
+		if (isCreated()) {
+			for (int i = 0; i < NUM_SOURCES; i++) {
+				int state = AL10.alGetSourcei(source.get(i), AL10.AL_SOURCE_STATE);
+				if (AL10.AL_PLAYING == state)
+					return true;
+			}
+		}
+		return false;
+	}
+
+	/***
+	 * Check if the OpenAL engine instance has been created 
+	 */
+	public static boolean isCreated() {
 		return AL.isCreated();
 	}
 
@@ -103,34 +120,6 @@ public class SoundPlayer3D {
 	public static void play() {
 		for (int i = 0; i < NUM_SOURCES; i++)
 			AL10.alSourcePlay(source.get(i));
-		
-//		for (int i = 0; i < NUM_SOURCES; i++) {
-//			try {
-//				Thread.sleep(1000);
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-//
-//			int sizeInBytes = AL10.alGetBufferi(source.get(i), AL10.AL_SIZE);
-//			int channels = AL10.alGetBufferi(source.get(i), AL10.AL_CHANNELS);
-//			int bits = AL10.alGetBufferi(source.get(i), AL10.AL_BITS);
-//
-//			double lengthInSamples = sizeInBytes * 8
-//					/ (double) (channels * bits);
-//
-//			int frequency = AL10.alGetBufferi(source.get(i), AL10.AL_FREQUENCY);
-//
-//			durationInSeconds = lengthInSamples / (double) frequency;
-//
-//			System.out.println("sizeInBytes: " + sizeInBytes);
-//			System.out.println("channels: " + channels);
-//			System.out.println("bits: " + bits);
-//			System.out.println("lengthInSamples: " + lengthInSamples);
-//			System.out.println("frequency: " + frequency);
-//			System.out.println("durationInSeconds: " + durationInSeconds);
-//			System.out.println();
-//		}
 	}
 	
 	public static void pause() {
@@ -169,7 +158,6 @@ public class SoundPlayer3D {
 	private static int loadALData(List<Sound3D> soundList) {
 		// Load wav data into a buffer.
 		AL10.alGenBuffers(buffer);
-//		durationInSeconds = 0;
 		if (AL10.alGetError() != AL10.AL_NO_ERROR)
 			return AL10.AL_FALSE;
 
@@ -190,23 +178,6 @@ public class SoundPlayer3D {
 				ex.printStackTrace();
 				return AL10.AL_FALSE;
 			}
-			
-//			// Get the largest duration
-//			AudioInputStream audioInputStream;
-//			try {
-//				if (file == null)
-//					file = new File(DEFAULT_FILEDIR + DEFAULT_FILE);
-//				audioInputStream = AudioSystem.getAudioInputStream(file);
-//				AudioFormat format = audioInputStream.getFormat();
-//				long frames = audioInputStream.getFrameLength();
-//				double duration = (frames + 0.0) / format.getFrameRate();
-//				if (durationInSeconds < duration) {
-//					durationInSeconds = duration;
-//				}
-//
-//			} catch (UnsupportedAudioFileException | IOException e) {
-//				e.printStackTrace();
-//			}
 			
 			if (fin != null) {
 				try {
@@ -235,7 +206,7 @@ public class SoundPlayer3D {
 			AL10.alSourcef(source.get(i), AL10.AL_GAIN, 1.0f);
 			setSourcePosition(i, sound.x, sound.y, sound.z);
 			AL10.alSource(source.get(i), AL10.AL_VELOCITY, sourceVel);
-			AL10.alSourcei(source.get(i), AL10.AL_LOOPING, AL10.AL_TRUE);
+			AL10.alSourcei(source.get(i), AL10.AL_LOOPING, AL10.AL_FALSE);
 		}
 		
 		// Do another error check and return.

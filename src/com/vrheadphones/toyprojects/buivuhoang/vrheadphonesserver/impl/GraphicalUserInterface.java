@@ -16,6 +16,8 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -33,6 +35,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.vrheadphones.toyprojects.buivuhoang.vrheadphonesserver.AbstractResizeListener;
 import com.vrheadphones.toyprojects.buivuhoang.vrheadphonesserver.InterfaceAdapter;
+import com.vrheadphones.toyprojects.buivuhoang.vrheadphonesserver.SoundSliderPlayerLink;
 
 public class GraphicalUserInterface {
 	private static final String DEFAULT_SOUND_NAME = "default";
@@ -92,11 +95,13 @@ public class GraphicalUserInterface {
 	
 	private double durationInSeconds = 0;
 	
+	private Timer sliderTimer;
+	
 	public GraphicalUserInterface(InterfaceAdapter interfaceAdapter) {
 		// Setting up 
 		soundList = positionFieldPanel.getSoundList();
 		this.interfaceAdapter = interfaceAdapter;
-		soundSliderPanel = new SoundSliderPanel(interfaceAdapter);
+		soundSliderPanel = new SoundSliderPanel(new SliderPlayerLink());
 	}
 
 	private void addComponentsToPane(Container pane) {
@@ -307,10 +312,9 @@ public class GraphicalUserInterface {
     private void refresh() {
     	isRefreshButtonPressed = true;
     	soundList = positionFieldPanel.getSoundList();
-    	resetMediaControls();
     	if (interfaceAdapter != null) 
     		durationInSeconds = interfaceAdapter.getDurationInSeconds(soundList);
-		soundSliderPanel.refreshSlider(durationInSeconds);
+    	stopPlayerAndRefreshControls();
     }
     
     private class OKButtonAction implements ActionListener
@@ -341,13 +345,19 @@ public class GraphicalUserInterface {
         		playButton.setIcon(pauseIcon);
         		if (interfaceAdapter != null) {
         			interfaceAdapter.playButtonPressed();
-        			soundSliderPanel.startPlaying();
+        			// Start the timer for the slider
+        			sliderTimer = new Timer();
+        			sliderTimer.schedule(new DurationSliderTask(), 0, //initial delay
+        		        1 * 1000); //subsequent rate
         		}
         	} else {
         		// Pause
         		if (interfaceAdapter != null) {
         			interfaceAdapter.pauseButtonPressed();
-        			soundSliderPanel.pausePlaying();
+        			// Stop the timer for the slider
+        			if (sliderTimer != null) {
+        				sliderTimer.cancel();
+        			}
         		}
         		resetMediaControls();
         	}
@@ -358,18 +368,49 @@ public class GraphicalUserInterface {
     {
         public void actionPerformed(ActionEvent e)
         {
-        	// Stop
-        	if (interfaceAdapter != null) {
-    			interfaceAdapter.stopButtonPressed();
-    			soundSliderPanel.stopPlaying();
-        	}
-        	resetMediaControls();
+        	stopPlayerAndRefreshControls();
         }
+    }
+    
+    private void stopPlayerAndRefreshControls() {
+    	// Stop
+    	if (interfaceAdapter != null) {
+			interfaceAdapter.stopButtonPressed();
+			
+			// Stop the timer for the slider and reset the slider
+			if (sliderTimer != null) {
+				sliderTimer.cancel();
+			}
+			soundSliderPanel.refreshSlider(durationInSeconds);
+    	}
+    	resetMediaControls();
     }
     
     private void resetMediaControls() {
     	isPlayed = false;
 		playButton.setIcon(playIcon);
+    }
+    
+    private class DurationSliderTask extends TimerTask {
+		public void run() {
+			int position = soundSliderPanel.getPosition();
+			if (position < durationInSeconds) {
+				soundSliderPanel.setSlider(++position);
+			}
+			// If the slider ends, stop the sound player and reset media controls
+			if (position > (int)durationInSeconds) {
+				stopPlayerAndRefreshControls();
+			}
+		}
+	}
+    
+    private class SliderPlayerLink implements SoundSliderPlayerLink {
+		@Override
+		public void updateSoundPlayer() {
+			int seconds = soundSliderPanel.getPosition();
+			if (interfaceAdapter != null)
+				interfaceAdapter.setPlayPosition(seconds);
+		}
     }
 
 	/**
