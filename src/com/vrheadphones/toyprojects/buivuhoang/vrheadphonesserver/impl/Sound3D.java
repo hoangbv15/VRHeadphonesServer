@@ -20,7 +20,7 @@ public class Sound3D {
 	private float oX;
 	private float oY;
 	private float oZ;
-	
+	// TODO: when moving a sound source, oX oY oZ also needs updating
 	public Sound3D(float x, float y, float z) {
 		this.x = x;
 		this.y = y;
